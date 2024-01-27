@@ -311,8 +311,8 @@ public class QuiltBlockSettings extends AbstractBlock.Settings {
 	}
 
 	@Override
-	public QuiltBlockSettings disableParticlesOnBreak() {
-		super.disableParticlesOnBreak();
+	public QuiltBlockSettings withoutDustParticles() {
+		super.withoutDustParticles();
 		return this;
 	}
 

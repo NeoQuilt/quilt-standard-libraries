@@ -17,9 +17,13 @@
 package org.quiltmc.qsl.chat.mixin.client;
 
 import org.objectweb.asm.Opcodes;
-import org.spongepowered.asm.mixin.Final;
+import org.quiltmc.qsl.chat.api.QuiltChatEvents;
+import org.quiltmc.qsl.chat.api.types.ChatC2SMessage;
+import org.quiltmc.qsl.chat.api.types.ChatS2CMessage;
+import org.quiltmc.qsl.chat.api.types.ProfileIndependentS2CMessage;
+import org.quiltmc.qsl.chat.api.types.RawChatC2SMessage;
+import org.quiltmc.qsl.chat.api.types.SystemS2CMessage;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -27,25 +31,28 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.AbstractClientNetworkHandler;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.ClientConnection;
+import net.minecraft.network.NetworkState;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
+import net.minecraft.network.packet.payload.CustomPayload;
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.ProfileIndependentMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.SystemMessageS2CPacket;
-
-import org.quiltmc.qsl.chat.api.QuiltChatEvents;
-import org.quiltmc.qsl.chat.api.types.ChatC2SMessage;
-import org.quiltmc.qsl.chat.api.types.ChatS2CMessage;
-import org.quiltmc.qsl.chat.api.types.ProfileIndependentS2CMessage;
-import org.quiltmc.qsl.chat.api.types.RawChatC2SMessage;
-import org.quiltmc.qsl.chat.api.types.SystemS2CMessage;
+import net.minecraft.registry.DynamicRegistryManager.Frozen;
+import net.minecraft.unmapped.C_qqflkeyp;
 
 @Mixin(ClientPlayNetworkHandler.class)
-public class ClientPlayNetworkHandlerMixin {
-	@Shadow
-	@Final
-	private MinecraftClient client;
+public abstract class ClientPlayNetworkHandlerMixin extends AbstractClientNetworkHandler{
+	public ClientPlayNetworkHandlerMixin(MinecraftClient client, ClientConnection connection,
+			C_qqflkeyp c_qqflkeyp) {
+		super(client, connection, c_qqflkeyp);
+		// TODO Auto-generated constructor stub
+	}
+
+
 
 	@ModifyVariable(
 			method = "onChatMessage",
@@ -244,7 +251,7 @@ public class ClientPlayNetworkHandlerMixin {
 		QuiltChatEvents.AFTER_PROCESS.invoke(message);
 	}
 
-	@Redirect(
+/*	@Redirect(
 			method = "sendChatMessage",
 			at = @At(
 					value = "INVOKE",
@@ -258,7 +265,7 @@ public class ClientPlayNetworkHandlerMixin {
 
 			if (QuiltChatEvents.CANCEL.invoke(message) != Boolean.TRUE) {
 				QuiltChatEvents.BEFORE_PROCESS.invoke(message);
-				instance.sendPacket(message.serialized());
+				instance.send(message.serialized());
 				QuiltChatEvents.AFTER_PROCESS.invoke(message);
 			} else {
 				QuiltChatEvents.CANCELLED.invoke(message);
@@ -266,5 +273,8 @@ public class ClientPlayNetworkHandlerMixin {
 		} else {
 			throw new IllegalArgumentException("Received non-ChatMessageC2SPacket for argument to ClientPlayNetworkHandler.sendPacket in ClientPlayNetworkHandler.method_45729 (sendChatMessage? mapping missing at time of writing)");
 		}
-	}
+	}*/
+
+
+
 }
