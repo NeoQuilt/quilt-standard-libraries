@@ -32,6 +32,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.listener.ServerCommonPacketListener;
 import net.minecraft.network.listener.ServerPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.util.Identifier;
@@ -189,7 +190,7 @@ public final class ClientPlayNetworking {
 	 * @return a new packet
 	 */
 	@Contract(value = "_, _ -> new", pure = true)
-	public static Packet<ServerPlayPacketListener> createC2SPacket(@NotNull Identifier channelName, @NotNull PacketByteBuf buf) {
+	public static Packet<ServerCommonPacketListener> createC2SPacket(@NotNull Identifier channelName, @NotNull PacketByteBuf buf) {
 		Objects.requireNonNull(channelName, "Channel name cannot be null");
 		Objects.requireNonNull(buf, "Buf cannot be null");
 
@@ -221,7 +222,7 @@ public final class ClientPlayNetworking {
 	public static void send(Identifier channelName, PacketByteBuf buf) throws IllegalStateException {
 		// You cant send without a client player, so this is fine
 		if (MinecraftClient.getInstance().getNetworkHandler() != null) {
-			MinecraftClient.getInstance().getNetworkHandler().sendPacket(createC2SPacket(channelName, buf));
+			MinecraftClient.getInstance().getNetworkHandler().send(createC2SPacket(channelName, buf));
 			return;
 		}
 

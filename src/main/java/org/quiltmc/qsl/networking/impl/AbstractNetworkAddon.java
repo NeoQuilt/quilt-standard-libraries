@@ -65,6 +65,8 @@ public abstract class AbstractNetworkAddon<H> {
 			lock.unlock();
 		}
 	}
+	
+	protected abstract void invokeInitEvent();
 
 	public boolean registerChannel(Identifier channelName, H handler) {
 		Objects.requireNonNull(channelName, "Channel name cannot be null");

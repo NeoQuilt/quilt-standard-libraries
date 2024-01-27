@@ -45,14 +45,14 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.PacketSendListener;
-import net.minecraft.network.listener.ServerPlayPacketListener;
+import net.minecraft.network.listener.ServerCommonPacketListener;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
 import net.minecraft.util.Identifier;
 
 @ApiStatus.Internal
 @Environment(EnvType.CLIENT)
 public final class ClientNetworkingImpl {
+	public static net.fabricmc.fabric.impl.networking.client.ClientNetworkingImpl  main = new net.fabricmc.fabric.impl.networking.client.ClientNetworkingImpl();
 	public static final GlobalReceiverRegistry<ClientLoginNetworking.QueryRequestReceiver> LOGIN = new GlobalReceiverRegistry<>();
 	public static final GlobalReceiverRegistry<ClientPlayNetworking.ChannelReceiver> PLAY = new GlobalReceiverRegistry<>();
 	private static ClientPlayNetworkAddon currentPlayAddon;
@@ -65,8 +65,8 @@ public final class ClientNetworkingImpl {
 		return (ClientLoginNetworkAddon) ((NetworkHandlerExtensions) handler).getAddon();
 	}
 
-	public static Packet<ServerPlayPacketListener> createPlayC2SPacket(Identifier channelName, PacketByteBuf buf) {
-		return new CustomPayloadC2SPacket(channelName, buf);
+	public static Packet<ServerCommonPacketListener> createPlayC2SPacket(Identifier channelName, PacketByteBuf buf) {
+		return net.fabricmc.fabric.impl.networking.client.ClientNetworkingImpl.createC2SPacket(channelName, buf);
 	}
 
 	/**

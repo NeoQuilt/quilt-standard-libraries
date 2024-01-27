@@ -24,7 +24,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayChannelHandler;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.listener.ClientCommonPacketListener;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.server.MinecraftServer;
@@ -47,6 +49,7 @@ import org.quiltmc.qsl.networking.impl.server.ServerNetworkingImpl;
  * @see ClientPlayNetworking
  */
 public final class ServerPlayNetworking {
+
 	/**
 	 * Registers a handler to a channel.
 	 * A global receiver is registered to all connections, in the present and future.
@@ -60,8 +63,8 @@ public final class ServerPlayNetworking {
 	 * @see ServerPlayNetworking#unregisterGlobalReceiver(Identifier)
 	 * @see ServerPlayNetworking#registerReceiver(ServerPlayNetworkHandler, Identifier, ChannelReceiver)
 	 */
-	public static boolean registerGlobalReceiver(Identifier channelName, ChannelReceiver channelHandler) {
-		return ServerNetworkingImpl.PLAY.registerGlobalReceiver(channelName, channelHandler);
+	public static boolean registerGlobalReceiver(Identifier channelName, PlayChannelHandler channelHandler) {
+		return net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(channelName, channelHandler);
 	}
 
 	/**
@@ -211,11 +214,8 @@ public final class ServerPlayNetworking {
 	 * @return a new packet
 	 */
 	@Contract(value = "_, _ -> new", pure = true)
-	public static Packet<ClientPlayPacketListener> createS2CPacket(@NotNull Identifier channelName, @NotNull PacketByteBuf buf) {
-		Objects.requireNonNull(channelName, "Channel cannot be null");
-		Objects.requireNonNull(buf, "Buf cannot be null");
-
-		return ServerNetworkingImpl.createPlayC2SPacket(channelName, buf);
+	public static Packet<ClientCommonPacketListener> createS2CPacket(@NotNull Identifier channelName, @NotNull PacketByteBuf buf) {
+return net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.createS2CPacket(channelName, buf);
 	}
 
 	/**
@@ -254,7 +254,7 @@ public final class ServerPlayNetworking {
 		Objects.requireNonNull(channelName, "Channel name cannot be null");
 		Objects.requireNonNull(buf, "Packet byte buf cannot be null");
 
-		player.networkHandler.sendPacket(createS2CPacket(channelName, buf));
+		player.networkHandler.send(createS2CPacket(channelName, buf));
 	}
 
 	/**

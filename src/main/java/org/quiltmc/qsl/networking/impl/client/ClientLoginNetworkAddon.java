@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Quilt Project
+ * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,89 +16,61 @@
 
 package org.quiltmc.qsl.networking.impl.client;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
-import org.quiltmc.qsl.networking.api.PacketSendListeners;
 import org.quiltmc.qsl.networking.api.client.ClientLoginConnectionEvents;
 import org.quiltmc.qsl.networking.api.client.ClientLoginNetworking;
 import org.quiltmc.qsl.networking.impl.AbstractNetworkAddon;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.mixin.networking.client.accessor.ClientLoginNetworkHandlerAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.PacketSendListener;
-import net.minecraft.network.packet.c2s.login.LoginQueryResponseC2SPacket;
 import net.minecraft.network.packet.s2c.login.LoginQueryRequestS2CPacket;
 import net.minecraft.util.Identifier;
 
-@ApiStatus.Internal
-@Environment(EnvType.CLIENT)
 public final class ClientLoginNetworkAddon extends AbstractNetworkAddon<ClientLoginNetworking.QueryRequestReceiver> {
 	private final ClientLoginNetworkHandler handler;
 	private final MinecraftClient client;
 	private boolean firstResponse = true;
-
+public net.fabricmc.fabric.impl.networking.client.ClientLoginNetworkAddon main;
+	
 	public ClientLoginNetworkAddon(ClientLoginNetworkHandler handler, MinecraftClient client) {
 		super(ClientNetworkingImpl.LOGIN, "ClientLoginNetworkAddon for Client");
 		this.handler = handler;
 		this.client = client;
+		this.main=new net.fabricmc.fabric.impl.networking.client.ClientLoginNetworkAddon(handler,client);
+	}
 
+	@Override
+	protected void invokeInitEvent() {
 		ClientLoginConnectionEvents.INIT.invoker().onLoginStart(this.handler, this.client);
-		this.receiver.startSession(this);
 	}
 
 	public boolean handlePacket(LoginQueryRequestS2CPacket packet) {
-		return this.handlePacket(packet.getQueryId(), packet.getChannel(), packet.getPayload());
+		return main.handlePacket(packet);
 	}
 
 	private boolean handlePacket(int queryId, Identifier channelName, PacketByteBuf originalBuf) {
-		this.logger.debug("Handling inbound login response with id {} and channel with name {}", queryId, channelName);
-
-		if (this.firstResponse) {
-			// Register global handlers
-			for (Map.Entry<Identifier, ClientLoginNetworking.QueryRequestReceiver> entry : ClientNetworkingImpl.LOGIN.getReceivers().entrySet()) {
-				ClientLoginNetworking.registerReceiver(entry.getKey(), entry.getValue());
-			}
-
-			ClientLoginConnectionEvents.QUERY_START.invoker().onLoginQueryStart(this.handler, this.client);
-			this.firstResponse = false;
-		}
-
-		@Nullable ClientLoginNetworking.QueryRequestReceiver handler = this.getHandler(channelName);
-
-		if (handler == null) {
-			return false;
-		}
-
-		PacketByteBuf buf = PacketByteBufs.slice(originalBuf);
-		var futureListeners = new ArrayList<PacketSendListener>();
-
-		try {
-			CompletableFuture<@Nullable PacketByteBuf> future = handler.receive(this.client, this.handler, buf, futureListeners::add);
-			future.thenAccept(result -> {
-				var packet = new LoginQueryResponseC2SPacket(queryId, result);
-				PacketSendListener listener = null;
-
-				for (var each : futureListeners) {
-					listener = PacketSendListeners.union(listener, each);
-				}
-
-				((ClientLoginNetworkHandlerAccessor) this.handler).getConnection().send(packet, listener);
-			});
-		} catch (Throwable ex) {
-			this.logger.error("Encountered exception while handling in channel with name \"{}\"", channelName, ex);
-			throw ex;
-		}
-
-		return true;
+Class clazz = main.getClass();
+try {
+	Method method = clazz.getDeclaredMethod("handlePacket", Identifier.class,PacketByteBuf.class);
+method.setAccessible(true);
+return (boolean)method.invoke(main, channelName,originalBuf);
+} catch (NoSuchMethodException | SecurityException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+} catch (IllegalAccessException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+} catch (IllegalArgumentException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+} catch (InvocationTargetException e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+}
+		return false;
 	}
 
 	@Override
@@ -112,11 +84,6 @@ public final class ClientLoginNetworkAddon extends AbstractNetworkAddon<ClientLo
 	@Override
 	protected void invokeDisconnectEvent() {
 		ClientLoginConnectionEvents.DISCONNECT.invoker().onLoginDisconnect(this.handler, this.client);
-		this.receiver.endSession(this);
-	}
-
-	public void handlePlayTransition() {
-		this.receiver.endSession(this);
 	}
 
 	@Override

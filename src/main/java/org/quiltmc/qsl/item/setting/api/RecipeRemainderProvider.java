@@ -23,6 +23,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeHolder;
 import net.minecraft.util.collection.DefaultedList;
 
 /**
@@ -43,9 +44,9 @@ public interface RecipeRemainderProvider {
 	 * @return the recipe remainder
 	 */
 	@Contract(value = "_, _ -> new")
-	ItemStack getRecipeRemainder(ItemStack original, @Nullable Recipe<?> recipe);
+	ItemStack getRecipeRemainder(ItemStack original, @Nullable RecipeHolder<?> recipe);
 
-	static DefaultedList<ItemStack> getRemainingStacks(Inventory inventory, Recipe<?> recipe, DefaultedList<ItemStack> defaultedList) {
+	static DefaultedList<ItemStack> getRemainingStacks(Inventory inventory, RecipeHolder<?> recipe, DefaultedList<ItemStack> defaultedList) {
 		for (int i = 0; i < defaultedList.size(); ++i) {
 			ItemStack stack = inventory.getStack(i);
 			ItemStack remainder = RecipeRemainderLogicHandler.getRemainder(stack, recipe);

@@ -27,15 +27,15 @@ import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 import org.quiltmc.qsl.networking.impl.AbstractChanneledNetworkAddon;
 import org.quiltmc.qsl.networking.impl.ChannelInfoHolder;
 import org.quiltmc.qsl.networking.impl.NetworkingImpl;
-import org.quiltmc.qsl.networking.mixin.accessor.ClientPlayNetworkHandlerAccessor;
 
+import jp.mikumikudance.neoquilt.networking.NeoQuiltNetworkUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.util.Identifier;
 
 @ApiStatus.Internal
@@ -45,8 +45,8 @@ public final class ClientPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 	private final MinecraftClient client;
 	private boolean sentInitialRegisterPacket;
 
-	public ClientPlayNetworkAddon(ClientPlayNetworkHandler handler, MinecraftClient client) {
-		super(ClientNetworkingImpl.PLAY, ((ClientPlayNetworkHandlerAccessor) handler).getConnection(), "ClientPlayNetworkAddon for " + handler.getProfile().getName());
+	public ClientPlayNetworkAddon(ClientPlayNetworkHandler handler,ClientConnection connection, MinecraftClient client) {
+		super(ClientNetworkingImpl.PLAY, connection, "ClientPlayNetworkAddon for " + handler.getProfile().getName());
 		this.handler = handler;
 		this.client = client;
 
@@ -57,6 +57,20 @@ public final class ClientPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 		this.receiver.startSession(this);
 	}
 
+	public ClientPlayNetworkAddon(ClientPlayNetworkHandler handler, MinecraftClient client) {
+		super(ClientNetworkingImpl.PLAY, NeoQuiltNetworkUtils.handlerToConnection(handler), "ClientPlayNetworkAddon for " + handler.getProfile().getName());
+		this.handler = handler;
+		this.client = client;
+
+		// Must register pending channels via lateinit
+		this.registerPendingChannels((ChannelInfoHolder) this.connection);
+
+		// Register global receivers and attach to session
+		this.receiver.startSession(this);
+	}
+	
+	
+	
 	@Override
 	public void lateInit() {
 		for (Map.Entry<Identifier, ClientPlayNetworking.ChannelReceiver> entry : this.receiver.getReceivers().entrySet()) {
@@ -80,15 +94,16 @@ public final class ClientPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 	 * @param packet the packet to handle
 	 * @return true if the packet has been handled
 	 */
-	public boolean handle(CustomPayloadS2CPacket packet) {
+	/*public boolean handle(CustomPayloadS2CPacket packet) {
 		PacketByteBuf buf = packet.getData();
-
+		net.fabricmc.fabric.impl.networking.client.ClientPlayNetworkAddon.class.getAnnotations();
 		try {
 			return this.handle(packet.getChannel(), buf);
 		} finally {
 			buf.release();
 		}
 	}
+	*/
 
 	@Override
 	protected void receive(ClientPlayNetworking.ChannelReceiver handler, PacketByteBuf buf) {
@@ -150,5 +165,10 @@ public final class ClientPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 	@Override
 	protected boolean isReservedChannel(Identifier channelName) {
 		return NetworkingImpl.isReservedPlayChannel(channelName);
+	}
+
+	@Override
+	protected void invokeInitEvent() {
+		ClientPlayConnectionEvents.INIT.invoker().onPlayInit(this.handler, this.client);
 	}
 }

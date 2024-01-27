@@ -27,14 +27,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
-import org.quiltmc.qsl.networking.api.PacketByteBufs;
 import org.quiltmc.qsl.networking.api.PacketSender;
 import org.quiltmc.qsl.networking.api.ServerLoginConnectionEvents;
 import org.quiltmc.qsl.networking.api.ServerLoginNetworking;
 import org.quiltmc.qsl.networking.impl.AbstractNetworkAddon;
 
-import net.fabricmc.fabric.mixin.networking.accessor.LoginQueryResponseC2SPacketAccessor;
 import net.fabricmc.fabric.mixin.networking.accessor.ServerLoginNetworkHandlerAccessor;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketByteBuf;
@@ -56,7 +53,8 @@ public final class ServerLoginNetworkAddon extends AbstractNetworkAddon<ServerLo
 	private final Collection<Future<?>> waits = new ConcurrentLinkedQueue<>();
 	private final Map<Integer, Identifier> channels = new ConcurrentHashMap<>();
 	private boolean firstQueryTick = true;
-
+	net.fabricmc.fabric.impl.networking.server.ServerLoginNetworkAddon main ;
+	
 	public ServerLoginNetworkAddon(ServerLoginNetworkHandler handler) {
 		super(ServerNetworkingImpl.LOGIN, "ServerLoginNetworkAddon for " + handler.getConnectionInfo());
 		this.connection = ((ServerLoginNetworkHandlerAccessor) handler).getConnection();
@@ -66,59 +64,16 @@ public final class ServerLoginNetworkAddon extends AbstractNetworkAddon<ServerLo
 
 		ServerLoginConnectionEvents.INIT.invoker().onLoginInit(handler, this.server);
 		this.receiver.startSession(this);
+		this.main= new net.fabricmc.fabric.impl.networking.server.ServerLoginNetworkAddon(handler);
+		
 	}
 
 	// return true if no longer ticks query
 	public boolean queryTick() {
-		if (this.firstQueryTick) {
-			// Send the compression packet now so clients receive compressed login queries
-			this.sendCompressionPacket();
-
-			// Register global receivers.
-			for (Map.Entry<Identifier, ServerLoginNetworking.QueryResponseReceiver> entry : ServerNetworkingImpl.LOGIN.getReceivers().entrySet()) {
-				ServerLoginNetworking.registerReceiver(this.handler, entry.getKey(), entry.getValue());
-			}
-
-			ServerLoginConnectionEvents.QUERY_START.invoker().onLoginStart(this.handler, this.server, this, this.waits::add);
-			this.firstQueryTick = false;
-		}
-
-		var error = new AtomicReference<Throwable>();
-		this.waits.removeIf(future -> {
-			if (!future.isDone()) {
-				return false;
-			}
-
-			try {
-				future.get();
-			} catch (ExecutionException ex) {
-				Throwable caught = ex.getCause();
-				error.getAndUpdate(oldEx -> {
-					if (oldEx == null) {
-						return caught;
-					}
-
-					oldEx.addSuppressed(caught);
-					return oldEx;
-				});
-			} catch (InterruptedException | CancellationException ignored) {
-				// ignore
-			}
-
-			return true;
-		});
-
-		return this.channels.isEmpty() && this.waits.isEmpty();
+	
+		return main.queryTick();
 	}
 
-	private void sendCompressionPacket() {
-		// Compression is not needed for local transport
-		if (this.server.getNetworkCompressionThreshold() >= 0 && !this.connection.isLocal()) {
-			this.connection.send(new LoginCompressionS2CPacket(this.server.getNetworkCompressionThreshold()), PacketSendListener.alwaysRun(() ->
-					this.connection.setCompressionThreshold(this.server.getNetworkCompressionThreshold(), true)
-			));
-		}
-	}
 
 	/**
 	 * Handles an incoming query response during login.
@@ -127,61 +82,27 @@ public final class ServerLoginNetworkAddon extends AbstractNetworkAddon<ServerLo
 	 * @return true if the packet was handled
 	 */
 	public boolean handle(LoginQueryResponseC2SPacket packet) {
-		var access = (LoginQueryResponseC2SPacketAccessor) packet;
-		return this.handle(access.getQueryId(), access.getResponse());
+	return main.handle(packet);
 	}
 
-	private boolean handle(int queryId, @Nullable PacketByteBuf originalBuf) {
-		this.logger.debug("Handling inbound login query with id {}", queryId);
-		Identifier channel = this.channels.remove(queryId);
-
-		if (channel == null) {
-			this.logger.warn("Query ID {} was received but no query has been associated in {}!", queryId, this.connection);
-			return false;
-		}
-
-		boolean understood = originalBuf != null;
-		@Nullable ServerLoginNetworking.QueryResponseReceiver handler = ServerNetworkingImpl.LOGIN.getReceiver(channel);
-
-		if (handler == null) {
-			return false;
-		}
-
-		PacketByteBuf buf = understood ? PacketByteBufs.slice(originalBuf) : PacketByteBufs.empty();
-
-		try {
-			handler.receive(this.server, this.handler, understood, buf, this.waits::add, this);
-		} catch (Throwable ex) {
-			this.logger.error("Encountered exception while handling in channel \"{}\"", channel, ex);
-			throw ex;
-		}
-
-		return true;
-	}
 
 	@Override
 	public Packet<?> createPacket(Identifier channelName, PacketByteBuf buf) {
-		int queryId = this.queryIdFactory.nextId();
-
-		return new LoginQueryRequestS2CPacket(queryId, channelName, buf);
+return main.createPacket(channelName, buf);
 	}
 
 	@Override
 	public void sendPacket(Packet<?> packet) {
-		Objects.requireNonNull(packet, "Packet cannot be null");
-
-		this.connection.send(packet);
+ main.sendPacket(packet);
 	}
 
 	@Override
 	public void sendPacket(Packet<?> packet, PacketSendListener listener) {
-		Objects.requireNonNull(packet, "Packet cannot be null");
-
-		this.connection.send(packet, listener);
+		this.main.sendPacket(packet, listener);
 	}
 
 	public void registerOutgoingPacket(LoginQueryRequestS2CPacket packet) {
-		this.channels.put(packet.getQueryId(), packet.getChannel());
+ main.registerOutgoingPacket(packet);
 	}
 
 	@Override
@@ -205,5 +126,11 @@ public final class ServerLoginNetworkAddon extends AbstractNetworkAddon<ServerLo
 	@Override
 	protected boolean isReservedChannel(Identifier channelName) {
 		return false;
+	}
+
+	@Override
+	protected void invokeInitEvent() {
+		// TODO Auto-generated method stub
+		ServerLoginConnectionEvents.INIT.invoker().onLoginInit(handler, this.server);
 	}
 }

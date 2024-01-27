@@ -26,6 +26,7 @@ import org.quiltmc.qsl.networking.impl.client.ClientNetworkingImpl;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking.LoginQueryRequestHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.ClientConnection;
@@ -98,19 +99,9 @@ public final class ClientLoginNetworking {
 	 * @return {@code false} if a handler is already registered to the channel name, otherwise {@code true}
 	 * @throws IllegalStateException if the client is not logging in
 	 */
-	public static boolean registerReceiver(Identifier channelName, QueryRequestReceiver queryHandler) throws IllegalStateException {
-		final ClientConnection connection = ClientNetworkingImpl.getLoginConnection();
-
-		if (connection != null) {
-			final PacketListener packetListener = connection.getPacketListener();
-
-			if (packetListener instanceof ClientLoginNetworkHandler clientHandler) {
-				return ClientNetworkingImpl.getAddon(clientHandler).registerChannel(channelName, queryHandler);
-			}
-		}
-
-		throw new IllegalStateException("Cannot register receiver while client is not logging in!");
-	}
+	public static boolean registerReceiver(Identifier channelName, LoginQueryRequestHandler queryHandler) throws IllegalStateException {
+		return net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking.registerReceiver(channelName,queryHandler);
+}
 
 	/**
 	 * Removes the handler of a query request channel.
@@ -122,18 +113,8 @@ public final class ClientLoginNetworking {
 	 * @throws IllegalStateException if the client is not logging in
 	 */
 	@Nullable
-	public static ClientLoginNetworking.QueryRequestReceiver unregisterReceiver(Identifier channelName) throws IllegalStateException {
-		final ClientConnection connection = ClientNetworkingImpl.getLoginConnection();
-
-		if (connection != null) {
-			final PacketListener packetListener = connection.getPacketListener();
-
-			if (packetListener instanceof ClientLoginNetworkHandler clientHandler) {
-				return ClientNetworkingImpl.getAddon(clientHandler).unregisterChannel(channelName);
-			}
-		}
-
-		throw new IllegalStateException("Cannot unregister receiver while client is not logging in!");
+	public static  LoginQueryRequestHandler unregisterReceiver(Identifier channelName) throws IllegalStateException {
+		return net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking.unregisterReceiver(channelName);
 	}
 
 	private ClientLoginNetworking() {

@@ -21,16 +21,14 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
+import org.quiltmc.qsl.item.setting.api.RecipeRemainderLogicHandler;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeHolder;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
-import org.quiltmc.qsl.item.setting.api.RecipeRemainderLogicHandler;
 
 @ApiStatus.Internal
 public final class RecipeRemainderLogicHandlerImpl implements RecipeRemainderLogicHandler {
@@ -80,7 +78,7 @@ public final class RecipeRemainderLogicHandlerImpl implements RecipeRemainderLog
 	}
 
 	@Contract(mutates = "param1")
-	private static ItemStack decrementWithRemainder(ItemStack original, int amount, @Nullable Recipe<?> recipe) {
+	private static ItemStack decrementWithRemainder(ItemStack original, int amount, @Nullable RecipeHolder<?> recipe) {
 		if (original.isEmpty()) {
 			return ItemStack.EMPTY;
 		}
@@ -93,7 +91,7 @@ public final class RecipeRemainderLogicHandlerImpl implements RecipeRemainderLog
 	}
 
 	@Contract(mutates = "param1, param4, param6")
-	public static void handleRemainderForNonPlayerCraft(ItemStack input, int amount, @Nullable Recipe<?> recipe, DefaultedList<ItemStack> inventory, int index, Consumer<ItemStack> failure) {
+	public static void handleRemainderForNonPlayerCraft(ItemStack input, int amount, @Nullable RecipeHolder<?> recipe, DefaultedList<ItemStack> inventory, int index, Consumer<ItemStack> failure) {
 		ItemStack remainder = decrementWithRemainder(input, amount, recipe);
 
 		if (!tryReturnItemToInventory(remainder, inventory, index)) {
@@ -102,7 +100,7 @@ public final class RecipeRemainderLogicHandlerImpl implements RecipeRemainderLog
 	}
 
 	@Contract(mutates = "param1, param4")
-	public static void handleRemainderForScreenHandler(Slot slot, int amount, @Nullable Recipe<?> recipe, PlayerEntity player) {
+	public static void handleRemainderForScreenHandler(Slot slot, int amount, @Nullable RecipeHolder<?> recipe, PlayerEntity player) {
 		ItemStack remainder = decrementWithRemainder(slot.getStack(), amount, recipe);
 
 		if (!tryReturnItemToSlot(remainder, slot)) {
@@ -111,4 +109,6 @@ public final class RecipeRemainderLogicHandlerImpl implements RecipeRemainderLog
 
 		slot.markDirty();
 	}
+
+
 }

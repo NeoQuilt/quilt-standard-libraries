@@ -16,9 +16,9 @@
 
 package org.quiltmc.qsl.networking.impl.server;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.qsl.networking.api.S2CPlayChannelEvents;
@@ -27,12 +27,13 @@ import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
 import org.quiltmc.qsl.networking.impl.AbstractChanneledNetworkAddon;
 import org.quiltmc.qsl.networking.impl.ChannelInfoHolder;
 import org.quiltmc.qsl.networking.impl.NetworkingImpl;
+import org.quiltmc.qsl.registry.impl.sync.server.ExtendedConnectionClient;
 
-import net.fabricmc.fabric.mixin.networking.accessor.CustomPayloadC2SPacketAccessor;
-import net.fabricmc.fabric.mixin.networking.accessor.ServerPlayNetworkHandlerAccessor;
+import jp.mikumikudance.neoquilt.networking.NeoQuiltNetworkUtils;
+import net.fabricmc.fabric.impl.networking.payload.ResolvablePayload;
+import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.util.Identifier;
@@ -42,9 +43,10 @@ public final class ServerPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 	private final ServerPlayNetworkHandler handler;
 	private final MinecraftServer server;
 	private boolean sentInitialRegisterPacket;
-
-	public ServerPlayNetworkAddon(ServerPlayNetworkHandler handler, MinecraftServer server) {
-		super(ServerNetworkingImpl.PLAY, ((ServerPlayNetworkHandlerAccessor) handler).getConnection(), "ServerPlayNetworkAddon for " + handler.player.getEntityName());
+	public net.fabricmc.fabric.impl.networking.server.ServerPlayNetworkAddon main;
+	
+	public ServerPlayNetworkAddon(ServerPlayNetworkHandler handler, ClientConnection connection, MinecraftServer server) {
+		super(ServerNetworkingImpl.PLAY, connection, "ServerPlayNetworkAddon for " + handler.player.getEntityName());
 		this.handler = handler;
 		this.server = server;
 
@@ -53,22 +55,22 @@ public final class ServerPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 
 		// Register global receivers and attach to session
 		this.receiver.startSession(this);
+		
+		main = new net.fabricmc.fabric.impl.networking.server.ServerPlayNetworkAddon(handler, connection, server);
 	}
 
+	
+	public ServerPlayNetworkAddon(ServerPlayNetworkHandler handler, MinecraftServer server) {
+		this(handler,NeoQuiltNetworkUtils.handlerToConnection(handler),server);	
+	}
+	
 	@Override
 	public void lateInit() {
-		for (Map.Entry<Identifier, ServerPlayNetworking.ChannelReceiver> entry : this.receiver.getReceivers().entrySet()) {
-			this.registerChannel(entry.getKey(), entry.getValue());
-		}
-
-		ServerPlayConnectionEvents.INIT.invoker().onPlayInit(this.handler, this.server);
-	}
+main.lateInit();
+}
 
 	public void onClientReady() {
-		ServerPlayConnectionEvents.JOIN.invoker().onPlayReady(this.handler, this, this.server);
-
-		this.sendInitialChannelRegistrationPacket();
-		this.sentInitialRegisterPacket = true;
+main.onClientReady();
 	}
 
 	/**
@@ -77,15 +79,9 @@ public final class ServerPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 	 * @param packet the packet to handle
 	 * @return true if the packet has been handled
 	 */
-	public boolean handle(CustomPayloadC2SPacket packet) {
-		// Do not handle the packet on game thread
-		if (this.server.isOnThread()) {
-			return false;
-		}
-
-		CustomPayloadC2SPacketAccessor access = (CustomPayloadC2SPacketAccessor) packet;
-		return this.handle(access.getChannel(), access.getData());
-	}
+	public boolean handle(ResolvablePayload packet) {
+return main.handle(packet)	;
+}
 
 	@Override
 	protected void receive(ServerPlayNetworking.ChannelReceiver handler, PacketByteBuf buf) {
@@ -148,4 +144,7 @@ public final class ServerPlayNetworkAddon extends AbstractChanneledNetworkAddon<
 	protected boolean isReservedChannel(Identifier channelName) {
 		return NetworkingImpl.isReservedPlayChannel(channelName);
 	}
+
+	@Override
+	protected void invokeInitEvent() {}
 }
