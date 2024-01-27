@@ -20,6 +20,9 @@ import java.util.Objects;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeHolder;
+import net.minecraft.recipe.ShapedRecipe;
+import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.util.Identifier;
 
 /**
@@ -54,5 +57,5 @@ public abstract class RecipeBuilder<SELF extends RecipeBuilder<SELF, RESULT>, RE
 	 * @param group the group of the recipe
 	 * @return the shaped recipe
 	 */
-	public abstract RESULT build(String group);
+	public abstract RecipeHolder<RESULT> build(Identifier id,String group);
 }

@@ -16,16 +16,19 @@
 
 package org.quiltmc.qsl.recipe.api.builder;
 
+import java.util.Optional;
+
 import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingCategory;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.recipe.RecipeHolder;
 import net.minecraft.recipe.ShapedRecipe;
 import net.minecraft.registry.tag.TagKey;
+import net.minecraft.unmapped.C_vhpbjodz;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 
@@ -144,9 +147,9 @@ public class ShapedRecipeBuilder extends RecipeBuilder<ShapedRecipeBuilder, Shap
 	 * @return the shaped recipe
 	 */
 	@Override
-	public ShapedRecipe build(String group) {
+	public RecipeHolder<ShapedRecipe> build(Identifier id, String group) {
 		this.checkOutputItem();
 		DefaultedList<Ingredient> ingredients = VanillaRecipeBuilders.getIngredients(this.pattern, this.ingredients, this.width, this.height);
-		return new ShapedRecipe(group, this.category, this.width, this.height, ingredients, this.output);
+		return new RecipeHolder<>(id, new ShapedRecipe(group, this.category, new C_vhpbjodz(this.width, this.height, ingredients, Optional.empty()), this.output));
 	}
 }

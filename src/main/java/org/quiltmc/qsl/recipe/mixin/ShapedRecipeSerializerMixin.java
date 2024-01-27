@@ -16,65 +16,12 @@
 
 package org.quiltmc.qsl.recipe.mixin;
 
-import java.util.ArrayList;
-
 import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
 import org.spongepowered.asm.mixin.Mixin;
 
-import com.google.gson.JsonObject;
-
-import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2CharOpenHashMap;
-import net.minecraft.data.server.recipe.ShapedRecipeJsonFactory;
-import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
 
 @Mixin(ShapedRecipe.Serializer.class)
 public abstract class ShapedRecipeSerializerMixin implements QuiltRecipeSerializer<ShapedRecipe> {
-	@Override
-	public JsonObject toJson(ShapedRecipe recipe, Identifier id) {
-		DefaultedList<Ingredient> recipeIngredients = recipe.getIngredients();
-		var ingredients = new Object2CharOpenHashMap<Ingredient>();
-		var inputs = new Char2ObjectOpenHashMap<Ingredient>();
-		ingredients.defaultReturnValue(' ');
-		char currentChar = 'A';
 
-		for (Ingredient ingredient : recipeIngredients) {
-			if (!ingredient.isEmpty()
-					&& ingredients.putIfAbsent(ingredient, currentChar) == ingredients.defaultReturnValue()) {
-				inputs.putIfAbsent(currentChar, ingredient);
-				currentChar++;
-			}
-		}
-
-		var pattern = new ArrayList<String>();
-		var patternLine = new StringBuilder();
-
-		for (int i = 0; i < recipeIngredients.size(); i++) {
-			if (i != 0 && i % recipe.getWidth() == 0) {
-				pattern.add(patternLine.toString());
-				patternLine.setLength(0);
-			}
-
-			Ingredient ingredient = recipeIngredients.get(i);
-			patternLine.append(ingredients.getChar(ingredient));
-		}
-
-		pattern.add(patternLine.toString());
-
-		var result = recipe.getResult(null);
-
-		return new ShapedRecipeJsonFactory.ShapedRecipeJsonProvider(
-				id,
-				result.getItem(),
-				result.getCount(),
-				recipe.getGroup(),
-				recipe.getCategory(),
-				pattern,
-				inputs,
-				null, recipe.showNotification()
-		).toJson();
-	}
 }

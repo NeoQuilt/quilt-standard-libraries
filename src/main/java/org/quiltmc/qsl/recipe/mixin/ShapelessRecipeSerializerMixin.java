@@ -19,21 +19,9 @@ package org.quiltmc.qsl.recipe.mixin;
 import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
 import org.spongepowered.asm.mixin.Mixin;
 
-import com.google.gson.JsonObject;
-
-import net.minecraft.data.server.recipe.ShapelessRecipeJsonFactory;
 import net.minecraft.recipe.ShapelessRecipe;
-import net.minecraft.util.Identifier;
 
 @Mixin(ShapelessRecipe.Serializer.class)
 public abstract class ShapelessRecipeSerializerMixin implements QuiltRecipeSerializer<ShapelessRecipe> {
-	@Override
-	public JsonObject toJson(ShapelessRecipe recipe, Identifier id) {
-		var result = recipe.getResult(null);
 
-		return new ShapelessRecipeJsonFactory.ShapelessRecipeJsonProvider(id,
-				result.getItem(), result.getCount(),
-				recipe.getGroup(), recipe.getCategory(), recipe.getIngredients(), null)
-				.toJson();
-	}
 }
