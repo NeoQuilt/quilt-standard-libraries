@@ -36,38 +36,9 @@ import org.quiltmc.qsl.command.api.client.QuiltClientCommandSource;
 
 @Mixin(ClientCommandSource.class)
 abstract class ClientCommandSourceMixin implements QuiltClientCommandSource {
-	@Shadow
-	@Final
-	private MinecraftClient client;
-
+	
 	@Unique
 	private final Map<String, Object> meta = new Object2ObjectOpenHashMap<>();
-
-	@Override
-	public void sendFeedback(Text message) {
-		this.client.inGameHud.getChatHud().addMessage(message);
-		this.client.getChatNarratorManager().narrate(message);
-	}
-
-	@Override
-	public void sendError(Text message) {
-		this.sendFeedback(message.copy().formatted(Formatting.RED));
-	}
-
-	@Override
-	public MinecraftClient getClient() {
-		return this.client;
-	}
-
-	@Override
-	public ClientPlayerEntity getPlayer() {
-		return this.client.player;
-	}
-
-	@Override
-	public ClientWorld getWorld() {
-		return this.client.world;
-	}
 
 	@Override
 	public Object getMeta(String key) {

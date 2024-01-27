@@ -30,19 +30,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.mojang.brigadier.CommandDispatcher;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.AbstractClientNetworkHandler;
 import net.minecraft.client.network.ClientCommandSource;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.registry.ClientRegistryLayer;
 import net.minecraft.command.CommandBuildContext;
 import net.minecraft.command.CommandSource;
 import net.minecraft.feature_flags.FeatureFlagBitSet;
+import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.s2c.play.CommandTreeUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
-import net.minecraft.registry.LayeredRegistryManager;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.server.command.CommandManager;
+import net.minecraft.unmapped.C_qqflkeyp;
 
 @Mixin(ClientPlayNetworkHandler.class)
-abstract class ClientPlayNetworkHandlerMixin {
+abstract class ClientPlayNetworkHandlerMixin extends AbstractClientNetworkHandler{
+	protected ClientPlayNetworkHandlerMixin(MinecraftClient client, ClientConnection connection,
+			C_qqflkeyp c_qqflkeyp) {
+		super(client, connection, c_qqflkeyp);
+		// TODO Auto-generated constructor stub
+	}
+
 	@Shadow
 	private CommandDispatcher<CommandSource> commandDispatcher;
 
@@ -51,11 +59,9 @@ abstract class ClientPlayNetworkHandlerMixin {
 	private ClientCommandSource commandSource;
 
 	@Shadow
-	private LayeredRegistryManager<ClientRegistryLayer> clientRegistryManager;
+	private DynamicRegistryManager.Frozen clientRegistryManager;
 
-	@Shadow
-	@Final
-	private MinecraftClient client;
+	
 
 	@Shadow
 	private FeatureFlagBitSet enabledFlags;
@@ -63,7 +69,7 @@ abstract class ClientPlayNetworkHandlerMixin {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "onGameJoin", at = @At("RETURN"))
 	private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
-		ClientCommandInternals.updateCommands(CommandBuildContext.createConfigurable(this.clientRegistryManager.getCompositeManager(), this.enabledFlags),
+		ClientCommandInternals.updateCommands(CommandBuildContext.createConfigurable(this.clientRegistryManager, this.enabledFlags),
 				(CommandDispatcher) this.commandDispatcher, (QuiltClientCommandSource)this.commandSource,
 				this.client.isIntegratedServerRunning() ? CommandManager.RegistrationEnvironment.INTEGRATED
 						: CommandManager.RegistrationEnvironment.DEDICATED
