@@ -18,22 +18,23 @@ package org.quiltmc.qsl.recipe.mixin;
 
 import java.util.ArrayList;
 
-import com.google.gson.JsonObject;
-import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2CharOpenHashMap;
+import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
 import org.spongepowered.asm.mixin.Mixin;
 
+import com.google.gson.JsonObject;
+
+import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2CharOpenHashMap;
 import net.minecraft.data.server.recipe.ShapedRecipeJsonFactory;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.ShapedRecipe;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
-
-import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
 
 @Mixin(ShapedRecipe.Serializer.class)
 public abstract class ShapedRecipeSerializerMixin implements QuiltRecipeSerializer<ShapedRecipe> {
 	@Override
-	public JsonObject toJson(ShapedRecipe recipe) {
+	public JsonObject toJson(ShapedRecipe recipe, Identifier id) {
 		DefaultedList<Ingredient> recipeIngredients = recipe.getIngredients();
 		var ingredients = new Object2CharOpenHashMap<Ingredient>();
 		var inputs = new Char2ObjectOpenHashMap<Ingredient>();
@@ -66,15 +67,14 @@ public abstract class ShapedRecipeSerializerMixin implements QuiltRecipeSerializ
 		var result = recipe.getResult(null);
 
 		return new ShapedRecipeJsonFactory.ShapedRecipeJsonProvider(
-				recipe.getId(),
+				id,
 				result.getItem(),
 				result.getCount(),
 				recipe.getGroup(),
 				recipe.getCategory(),
 				pattern,
 				inputs,
-				null, null,
-				recipe.showNotification()
+				null, recipe.showNotification()
 		).toJson();
 	}
 }

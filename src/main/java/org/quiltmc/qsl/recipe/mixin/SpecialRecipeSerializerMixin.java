@@ -18,19 +18,20 @@ package org.quiltmc.qsl.recipe.mixin;
 
 import java.util.Objects;
 
-import com.google.gson.JsonObject;
+import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
 import org.spongepowered.asm.mixin.Mixin;
+
+import com.google.gson.JsonObject;
 
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.SpecialRecipeSerializer;
 import net.minecraft.registry.Registries;
-
-import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
+import net.minecraft.util.Identifier;
 
 @Mixin(SpecialRecipeSerializer.class)
 public abstract class SpecialRecipeSerializerMixin<T extends Recipe<?>> implements QuiltRecipeSerializer<T> {
 	@Override
-	public JsonObject toJson(T recipe) {
+	public JsonObject toJson(T recipe, Identifier id) {
 		var json = new JsonObject();
 		json.addProperty("type", Objects.requireNonNull(Registries.RECIPE_SERIALIZER.getId(this)).toString());
 		return json;

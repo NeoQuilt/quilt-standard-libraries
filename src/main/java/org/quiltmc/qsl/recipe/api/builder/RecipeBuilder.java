@@ -54,5 +54,5 @@ public abstract class RecipeBuilder<SELF extends RecipeBuilder<SELF, RESULT>, RE
 	 * @param group the group of the recipe
 	 * @return the shaped recipe
 	 */
-	public abstract RESULT build(Identifier id, String group);
+	public abstract RESULT build(String group);
 }

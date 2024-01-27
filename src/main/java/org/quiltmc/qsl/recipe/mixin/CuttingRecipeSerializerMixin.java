@@ -21,18 +21,19 @@ import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.data.server.recipe.SingleItemRecipeJsonFactory;
 import net.minecraft.recipe.CuttingRecipe;
+import net.minecraft.util.Identifier;
 
 import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
 
 @Mixin(CuttingRecipe.Serializer.class)
 public abstract class CuttingRecipeSerializerMixin<T extends CuttingRecipe> implements QuiltRecipeSerializer<T> {
 	@Override
-	public JsonObject toJson(T recipe) {
+	public JsonObject toJson(T recipe, Identifier id) {
 		var result = recipe.getResult(null);
 
-		return new SingleItemRecipeJsonFactory.SingleItemRecipeJsonProvider(recipe.getId(), this, recipe.getGroup(),
+		return new SingleItemRecipeJsonFactory.SingleItemRecipeJsonProvider(id, this, recipe.getGroup(),
 				recipe.getIngredients().get(0), result.getItem(), result.getCount(),
-				null, null)
+				null)
 				.toJson();
 	}
 }

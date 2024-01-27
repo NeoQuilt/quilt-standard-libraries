@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.util.Identifier;
 
 /**
  * Represents a recipe serializer for mods to implement.
@@ -35,5 +36,9 @@ public interface QuiltRecipeSerializer<T extends Recipe<?>> extends RecipeSerial
 	 * @param recipe the recipe
 	 * @return the serialized recipe
 	 */
-	JsonObject toJson(T recipe);
+	JsonObject toJson(T recipe, Identifier id);
+	
+	default JsonObject toJson(T recipe) {
+		return toJson(recipe,null);
+	}
 }

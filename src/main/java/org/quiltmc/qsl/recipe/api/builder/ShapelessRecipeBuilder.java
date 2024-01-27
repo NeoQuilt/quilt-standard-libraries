@@ -107,7 +107,7 @@ public class ShapelessRecipeBuilder extends RecipeBuilder<ShapelessRecipeBuilder
 	 * @param group the group of the recipe
 	 * @return the shapeless crafting recipe
 	 */
-	public ShapelessRecipe build(Identifier id, String group) {
+	public ShapelessRecipe build(String group) {
 		this.checkOutputItem();
 
 		if (this.ingredients.size() == 0) throw new IllegalStateException("Cannot build a recipe without ingredients.");
@@ -120,6 +120,6 @@ public class ShapelessRecipeBuilder extends RecipeBuilder<ShapelessRecipeBuilder
 			i++;
 		}
 
-		return new ShapelessRecipe(id, group, this.category, this.output, ingredients);
+		return new ShapelessRecipe(group, this.category, this.output, ingredients);
 	}
 }

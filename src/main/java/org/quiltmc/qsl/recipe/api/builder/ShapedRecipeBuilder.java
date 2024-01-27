@@ -144,9 +144,9 @@ public class ShapedRecipeBuilder extends RecipeBuilder<ShapedRecipeBuilder, Shap
 	 * @return the shaped recipe
 	 */
 	@Override
-	public ShapedRecipe build(Identifier id, String group) {
+	public ShapedRecipe build(String group) {
 		this.checkOutputItem();
 		DefaultedList<Ingredient> ingredients = VanillaRecipeBuilders.getIngredients(this.pattern, this.ingredients, this.width, this.height);
-		return new ShapedRecipe(id, group, this.category, this.width, this.height, ingredients, this.output);
+		return new ShapedRecipe(group, this.category, this.width, this.height, ingredients, this.output);
 	}
 }

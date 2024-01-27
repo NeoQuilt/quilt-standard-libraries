@@ -16,25 +16,26 @@
 
 package org.quiltmc.qsl.recipe.mixin;
 
-import com.google.gson.JsonObject;
+import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
 import org.spongepowered.asm.mixin.Mixin;
+
+import com.google.gson.JsonObject;
 
 import net.minecraft.data.server.recipe.TransformSmithingRecipeJsonFactory;
 import net.minecraft.recipe.TransformSmithingRecipe;
-
-import org.quiltmc.qsl.recipe.api.serializer.QuiltRecipeSerializer;
+import net.minecraft.util.Identifier;
 
 @Mixin(TransformSmithingRecipe.Serializer.class)
 public abstract class TransformSmithingRecipeJsonProviderMixin implements QuiltRecipeSerializer<TransformSmithingRecipe> {
 	@Override
-	public JsonObject toJson(TransformSmithingRecipe recipe) {
+	public JsonObject toJson(TransformSmithingRecipe recipe, Identifier id) {
 		var accessor = (TransformSmithingRecipeAccessor) recipe;
 		return new TransformSmithingRecipeJsonFactory.TransformSmithingRecipeJsonProvider(
-				recipe.getId(),
+				id,
 				this,
 				accessor.getTemplate(), accessor.getBase(), accessor.getAddition(),
 				recipe.getResult(null).getItem(),
-				null, null
+				null
 		).toJson();
 	}
 }
