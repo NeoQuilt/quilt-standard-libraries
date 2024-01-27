@@ -26,22 +26,25 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.resource.pack.ResourcePackCompatibility;
-import net.minecraft.resource.pack.ResourcePackProfile;
-import net.minecraft.resource.pack.ResourcePackSource;
+import net.minecraft.SharedConstants;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.resource.pack.PackCompatibility;
+import net.minecraft.resource.pack.PackProfile;
+import net.minecraft.resource.pack.PackProfile.Info;
+import net.minecraft.resource.pack.PackProfile.InsertionPosition;
+import net.minecraft.resource.pack.PackProfile.PackFactory;
+import net.minecraft.resource.pack.PackSource;
 import net.minecraft.text.Text;
 
-@Mixin(ResourcePackProfile.class)
+@Mixin(PackProfile.class)
 public class ResourcePackProfileMixin implements QuiltResourcePackProfile {
 	@Unique
 	private ResourcePackActivationType quilt$activationType;
 
 	@Inject(method = "<init>", at = @At("RETURN"))
-	private void quilt$onInit(String name, boolean alwaysEnabled, ResourcePackProfile.ResourcePackFactory packFactory, Text displayName,
-			ResourcePackProfile.Info info, ResourcePackCompatibility compatibility, ResourcePackProfile.InsertionPosition position, boolean pinned,
-			ResourcePackSource source,
+	private void quilt$onInit(String name, boolean alwaysEnabled, PackFactory packFactory, Text displayName, Info info, InsertionPosition position, boolean pinned, PackSource source,
 			CallbackInfo ci) {
-		try (var pack = packFactory.open(name)) {
+		try (var pack = packFactory.open(name, info)) {
 			QuiltResourcePack qpack = (QuiltResourcePack)pack;
 			this.quilt$activationType = qpack.getActivationType();
 		}

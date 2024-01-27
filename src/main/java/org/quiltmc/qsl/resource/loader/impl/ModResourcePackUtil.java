@@ -32,8 +32,8 @@ import net.minecraft.SharedConstants;
 import net.minecraft.resource.ResourceIoSupplier;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.pack.DataPackSettings;
+import net.minecraft.resource.pack.PackProfile;
 import net.minecraft.resource.pack.ResourcePack;
-import net.minecraft.resource.pack.ResourcePackProfile;
 
 @ApiStatus.Internal
 public final class ModResourcePackUtil {
@@ -74,7 +74,7 @@ public final class ModResourcePackUtil {
 	}
 
 	public static DataPackSettings createDefaultDataPackSettings(DataPackSettings source) {
-		var moddedResourcePacks = new ArrayList<ResourcePackProfile>();
+		var moddedResourcePacks = new ArrayList<PackProfile>();
 		ModResourcePackProvider.SERVER_RESOURCE_PACK_PROVIDER.register(moddedResourcePacks::add);
 
 		var enabled = new ArrayList<>(source.getEnabled());
@@ -83,8 +83,8 @@ public final class ModResourcePackUtil {
 		// This ensure that any built-in registered data packs by mods which needs to be enabled by default are
 		// as the data pack screen automatically put any data pack as disabled except the Default data pack.
 		for (var profile : moddedResourcePacks) {
-			ResourcePack pack = profile.createResourcePack();
-			QuiltResourcePack qpack = (QuiltResourcePack)profile.createResourcePack();
+			ResourcePack pack = profile.createPack();
+			QuiltResourcePack qpack = (QuiltResourcePack)profile.createPack();
 			
 			if (qpack.getActivationType().isEnabledByDefault()) {
 				enabled.add(profile.getName());

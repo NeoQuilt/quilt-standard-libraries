@@ -17,15 +17,16 @@
 package org.quiltmc.qsl.resource.loader.api;
 
 import org.jetbrains.annotations.NotNull;
-
-import net.minecraft.resource.pack.ResourcePackProfile;
-
 import org.quiltmc.qsl.base.api.util.InjectedInterface;
+
+import net.minecraft.client.resource.ClientBuiltinResourcePackProvider;
+import net.minecraft.resource.pack.PackProfile;
+import net.minecraft.resource.pack.ResourcePack;
 
 /**
  * Represents a resource pack profile with extended metadata, injected into {@link ResourcePackProfile}.
  */
-@InjectedInterface(ResourcePackProfile.class)
+@InjectedInterface(PackProfile.class)
 public interface QuiltResourcePackProfile {
 	/**
 	 * Gets the activation type of this resource pack.
@@ -39,4 +40,10 @@ public interface QuiltResourcePackProfile {
 	default @NotNull ResourcePackActivationType getActivationType() {
 		return ResourcePackActivationType.NORMAL;
 	}
+	
+
+	static PackProfile.PackFactory wrapToFactory(ResourcePack pack) {
+		return ClientBuiltinResourcePackProvider.wrapToFactory(pack);
+	}
+	
 }

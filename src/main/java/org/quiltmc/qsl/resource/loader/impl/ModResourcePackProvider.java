@@ -22,14 +22,14 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.ApiStatus;
 
 import net.minecraft.resource.ResourceType;
-import net.minecraft.resource.pack.ResourcePackProfile;
-import net.minecraft.resource.pack.ResourcePackProvider;
+import net.minecraft.resource.pack.PackProfile;
+import net.minecraft.resource.pack.PackProvider;
 
 /**
  * Represents a resource pack provider for built-in mods resource packs and low-priority virtual resource packs.
  */
 @ApiStatus.Internal
-public final class ModResourcePackProvider implements ResourcePackProvider {
+public final class ModResourcePackProvider implements PackProvider {
 	public static final ModResourcePackProvider CLIENT_RESOURCE_PACK_PROVIDER = new ModResourcePackProvider(ResourceType.CLIENT_RESOURCES);
 	public static final ModResourcePackProvider SERVER_RESOURCE_PACK_PROVIDER = new ModResourcePackProvider(ResourceType.SERVER_DATA);
 
@@ -40,7 +40,7 @@ public final class ModResourcePackProvider implements ResourcePackProvider {
 	}
 
 	@Override
-	public void register(Consumer<ResourcePackProfile> profileAdder) {
+	public void register(Consumer<PackProfile> profileAdder) {
 		/*
 			Register order rule in this provider:
 			1. Mod built-in resource packs

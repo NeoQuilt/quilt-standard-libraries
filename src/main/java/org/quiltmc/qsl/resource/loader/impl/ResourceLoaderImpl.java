@@ -49,7 +49,6 @@ import org.quiltmc.qsl.resource.loader.api.ResourcePackActivationType;
 import org.quiltmc.qsl.resource.loader.api.ResourcePackRegistrationContext;
 import org.quiltmc.qsl.resource.loader.api.reloader.IdentifiableResourceReloader;
 import org.quiltmc.qsl.resource.loader.api.reloader.ResourceReloaderKeys;
-import org.quiltmc.qsl.resource.loader.mixin.VanillaDataPackProviderAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,10 +64,11 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.resource.MultiPackResourceManager;
 import net.minecraft.resource.ResourceReloader;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.resource.pack.PackProfile;
+import net.minecraft.resource.pack.PackProvider;
 import net.minecraft.resource.pack.ResourcePack;
-import net.minecraft.resource.pack.ResourcePackProfile;
-import net.minecraft.resource.pack.ResourcePackProvider;
-import net.minecraft.resource.pack.metadata.ResourceMetadataReader;
+import net.minecraft.resource.pack.VanillaDataPackProvider;
+import net.minecraft.resource.pack.metadata.ResourceMetadataSectionReader;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
@@ -102,7 +102,7 @@ public final class ResourceLoaderImpl implements ResourceLoader {
 	private final Set<Identifier> addedReloaderIds = new ObjectOpenHashSet<>();
 	private final Set<IdentifiableResourceReloader> addedReloaders = new LinkedHashSet<>();
 	private final Set<Pair<Identifier, Identifier>> reloadersOrdering = new LinkedHashSet<>();
-	final Set<ResourcePackProvider> resourcePackProfileProviders = new ObjectOpenHashSet<>();
+	final Set<PackProvider> resourcePackProfileProviders = new ObjectOpenHashSet<>();
 
 	private final Event<ResourcePackRegistrationContext.Callback> defaultResourcePackRegistrationEvent = createResourcePackRegistrationEvent();
 	private final Event<ResourcePackRegistrationContext.Callback> topResourcePackRegistrationEvent = createResourcePackRegistrationEvent();
@@ -123,7 +123,7 @@ public final class ResourceLoaderImpl implements ResourceLoader {
 		return IMPL_MAP.computeIfAbsent(type, ResourceLoaderImpl::new);
 	}
 
-	public static <T> @Nullable T parseMetadata(ResourceMetadataReader<T> metaReader, ResourcePack pack, InputStream inputStream) {
+	public static <T> @Nullable T parseMetadata(ResourceMetadataSectionReader<T> metaReader, ResourcePack pack, InputStream inputStream) {
 		JsonObject json;
 
 		try (var reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -181,7 +181,7 @@ public final class ResourceLoaderImpl implements ResourceLoader {
 	}
 
 	@Override
-	public void registerResourcePackProfileProvider(@NotNull ResourcePackProvider provider) {
+	public void registerResourcePackProfileProvider(@NotNull PackProvider provider) {
 		if (!this.resourcePackProfileProviders.add(provider)) {
 			throw new IllegalStateException(
 					"Tried to register a resource pack profile provider twice!"
@@ -394,29 +394,12 @@ public final class ResourceLoaderImpl implements ResourceLoader {
 		packs.addAll(packList);
 	}
 
-	public static GroupResourcePack.Wrapped buildMinecraftResourcePack(ResourceType type, ResourcePack vanillaPack) {
-		// Build a list of mod resource packs.
-		var packs = new ArrayList<ResourcePack>();
-		appendModResourcePacks(packs, type, null);
-
-		var pack = new GroupResourcePack.Wrapped(type, vanillaPack, packs, false);
-		int[] lastExtraPackIndex = new int[] {1};
-
-		var context = new ResourcePackRegistrationContextImpl(type, List.of(pack), p -> {
-			packs.add(lastExtraPackIndex[0]++, p);
-			pack.recompute();
-		});
-
-		get(type).getRegisterDefaultResourcePackEvent().invoker().onRegisterPack(context);
-
-		return pack;
-	}
 
 	public static GroupResourcePack.Wrapped buildVanillaBuiltinResourcePack(ResourcePack vanillaPack, ResourceType type, String packName) {
 		// Build a list of mod resource packs.
 		var packs = new ArrayList<ResourcePack>();
 		appendModResourcePacks(packs, type, packName);
-
+		
 		return new GroupResourcePack.Wrapped(type, vanillaPack, packs, false);
 	}
 
@@ -476,7 +459,7 @@ public final class ResourceLoaderImpl implements ResourceLoader {
 		return new ModNioResourcePack(name, container.getMetadata(), displayName, activationType, resourcePackPath, type, null);
 	}
 
-	public static void registerBuiltinResourcePacks(ResourceType type, Consumer<ResourcePackProfile> profileAdder) {
+	public static void registerBuiltinResourcePacks(ResourceType type, Consumer<PackProfile> profileAdder) {
 		var builtinPacks = type == ResourceType.CLIENT_RESOURCES
 				? CLIENT_BUILTIN_RESOURCE_PACKS : SERVER_BUILTIN_RESOURCE_PACKS;
 
@@ -505,7 +488,7 @@ public final class ResourceLoaderImpl implements ResourceLoader {
 	 */
 	public static void appendLanguageEntries(@NotNull Map<String, String> map) {
 		var pack = ResourceLoaderImpl.buildMinecraftResourcePack(ResourceType.CLIENT_RESOURCES,
-				VanillaDataPackProviderAccessor.invokeCreateVanillaResourcePack()
+				VanillaDataPackProvider.defaultPackBuilder()
 		);
 
 		try (var manager = new MultiPackResourceManager(ResourceType.CLIENT_RESOURCES, List.of(pack))) {
@@ -521,5 +504,25 @@ public final class ResourceLoaderImpl implements ResourceLoader {
 				}
 			}
 		}
+	}
+
+
+
+	public static GroupResourcePack.Wrapped buildMinecraftResourcePack(ResourceType type, ResourcePack vanillaPack) {
+		// Build a list of mod resource packs.
+		var packs = new ArrayList<ResourcePack>();
+		appendModResourcePacks(packs, type, null);
+
+		var pack = new GroupResourcePack.Wrapped(type, vanillaPack, packs, false);
+		int[] lastExtraPackIndex = new int[] {1};
+
+		var context = new ResourcePackRegistrationContextImpl(type, List.of(pack), p -> {
+			packs.add(lastExtraPackIndex[0]++, p);
+			pack.recompute();
+		});
+
+		get(type).getRegisterDefaultResourcePackEvent().invoker().onRegisterPack(context);
+
+		return pack;
 	}
 }

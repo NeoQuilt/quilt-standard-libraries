@@ -26,21 +26,23 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.SharedConstants;
+import net.minecraft.resource.pack.PackCompatibility;
+import net.minecraft.resource.pack.PackProfile;
+import net.minecraft.resource.pack.PackSource;
 import net.minecraft.resource.pack.ResourcePack;
-import net.minecraft.resource.pack.ResourcePackCompatibility;
-import net.minecraft.resource.pack.ResourcePackProfile;
-import net.minecraft.resource.pack.ResourcePackSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 @ApiStatus.Internal
-public final class QuiltBuiltinResourcePackProfile extends ResourcePackProfile implements QuiltResourcePackProfile {
+public final class QuiltBuiltinResourcePackProfile extends PackProfile implements QuiltResourcePackProfile {
 	private static final Logger LOGGER = LogUtils.getLogger();
 	private final ResourcePack pack;
 
 	static @Nullable QuiltBuiltinResourcePackProfile of(ModNioResourcePack pack) {
-		Info info = readInfoFromPack(pack.getName(), name -> pack);
-
+		int version = SharedConstants.getGameVersion().getResourceVersion(pack.type);
+		Info info = readInfoFromPack(pack.getName(), QuiltResourcePackProfile.wrapToFactory(pack), version);
+		
 		if (info == null) {
 			LOGGER.warn("Couldn't find pack meta for pack {}.", pack.getName());
 			return null;
@@ -53,11 +55,10 @@ public final class QuiltBuiltinResourcePackProfile extends ResourcePackProfile i
 		super(
 				pack.getName(),
 				pack.getActivationType() == ResourcePackActivationType.ALWAYS_ENABLED,
-				name -> pack,
+				QuiltResourcePackProfile.wrapToFactory(pack),
 				pack.getDisplayName(),
 				info,
-				info.getCompatibility(pack.type),
-				ResourcePackProfile.InsertionPosition.TOP,
+				PackProfile.InsertionPosition.TOP,
 				false,
 				new BuiltinResourcePackSource(pack)
 		);
@@ -65,9 +66,9 @@ public final class QuiltBuiltinResourcePackProfile extends ResourcePackProfile i
 	}
 
 	@Override
-	public ResourcePackCompatibility getCompatibility() {
+	public PackCompatibility getCompatibility() {
 		// This is to ease multi-version mods whose built-in packs actually work across versions.
-		return ResourcePackCompatibility.COMPATIBLE;
+		return PackCompatibility.COMPATIBLE;
 	}
 
 	@Override
@@ -80,7 +81,7 @@ public final class QuiltBuiltinResourcePackProfile extends ResourcePackProfile i
 	 * Represents a built-in resource pack source.
 	 * Similar to {@link ResourcePackSource#PACK_SOURCE_BUILTIN} but specifies the mod name too.
 	 */
-	public static class BuiltinResourcePackSource implements ResourcePackSource {
+	public static class BuiltinResourcePackSource implements PackSource {
 		private static final Text SOURCE_BUILTIN_TEXT = Text.translatable("pack.source.builtin");
 		private final ModNioResourcePack pack;
 		private final Text text;

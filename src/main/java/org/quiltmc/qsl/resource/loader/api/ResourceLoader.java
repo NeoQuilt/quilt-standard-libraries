@@ -28,8 +28,8 @@ import org.quiltmc.qsl.resource.loader.impl.ResourceLoaderImpl;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.resource.pack.PackProvider;
 import net.minecraft.resource.pack.ResourcePack;
-import net.minecraft.resource.pack.ResourcePackProvider;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -80,7 +80,7 @@ public interface ResourceLoader {
 	 *
 	 * @param provider the provider
 	 */
-	void registerResourcePackProfileProvider(@NotNull ResourcePackProvider provider);
+	void registerResourcePackProfileProvider(@NotNull PackProvider provider);
 
 	/**
 	 * {@return the registration of default resource packs event}

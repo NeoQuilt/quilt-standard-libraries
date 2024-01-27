@@ -26,15 +26,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resource.ResourceIoSupplier;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.pack.ResourcePack;
-import net.minecraft.resource.pack.metadata.ResourceMetadataReader;
+import net.minecraft.resource.pack.metadata.ResourceMetadataSectionReader;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -55,6 +55,7 @@ public abstract class GroupResourcePack implements ResourcePack, QuiltResourcePa
 	private boolean builtin;
 
 	public GroupResourcePack(@NotNull ResourceType type, @NotNull List<? extends ResourcePack> packs) {
+	super();
 		this.type = type;
 		this.packs = packs;
 		this.recompute();
@@ -197,7 +198,7 @@ public abstract class GroupResourcePack implements ResourcePack, QuiltResourcePa
 		}
 
 		@Override
-		public <T> @Nullable T parseMetadata(ResourceMetadataReader<T> metaReader) throws IOException {
+		public <T> @Nullable T parseMetadata(ResourceMetadataSectionReader<T> metaReader) throws IOException {
 			return this.basePack.parseMetadata(metaReader);
 		}
 

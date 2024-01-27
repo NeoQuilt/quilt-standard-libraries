@@ -19,20 +19,9 @@ package org.quiltmc.qsl.resource.loader.mixin;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.resource.ResourceType;
-import net.minecraft.resource.pack.ResourcePack;
-import net.minecraft.resource.pack.ResourcePackProfile;
-import net.minecraft.resource.pack.ResourcePackSource;
 import net.minecraft.resource.pack.VanillaDataPackProvider;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-
-import org.quiltmc.qsl.resource.loader.impl.ResourceLoaderImpl;
 
 @Mixin(VanillaDataPackProvider.class)
 public class VanillaDataPackProviderMixin {
@@ -40,30 +29,34 @@ public class VanillaDataPackProviderMixin {
 	@Final
 	private static Identifier DATA_PACKS_DIR;
 
+	
 	// Synthetic method createBuiltinResourcePackProfile(ResourcePack)ResourcePackProfile -> lambda in ResourcePackProfile.of
 	// Using an injector to wrap the previous return value.
-	@Inject(
-			method = "method_45284(Lnet/minecraft/resource/pack/ResourcePack;Ljava/lang/String;)Lnet/minecraft/resource/pack/ResourcePack;",
-			at = @At("RETURN"),
-			cancellable = true
-	)
-	private static void onPackGet(ResourcePack pack, String name, CallbackInfoReturnable<ResourcePack> cir) {
-		cir.setReturnValue(ResourceLoaderImpl.buildMinecraftResourcePack(ResourceType.SERVER_DATA, cir.getReturnValue()));
-	}
-
-	@ModifyArg(
-			method = "createBuiltinResourcePackProfile(Ljava/lang/String;Lnet/minecraft/resource/pack/ResourcePackProfile$ResourcePackFactory;Lnet/minecraft/text/Text;)Lnet/minecraft/resource/pack/ResourcePackProfile;",
+	/*@ModifyArg(
+			method = "createBuiltinPackProfile(Lnet/minecraft/resource/pack/ResourcePack;)Lnet/minecraft/resource/pack/PackProfile;",
 			at = @At(
 					value = "INVOKE",
-					target = "Lnet/minecraft/resource/pack/ResourcePackProfile;of(Ljava/lang/String;Lnet/minecraft/text/Text;ZLnet/minecraft/resource/pack/ResourcePackProfile$ResourcePackFactory;Lnet/minecraft/resource/ResourceType;Lnet/minecraft/resource/pack/ResourcePackProfile$InsertionPosition;Lnet/minecraft/resource/pack/ResourcePackSource;)Lnet/minecraft/resource/pack/ResourcePackProfile;"
+					target = "Lnet/minecraft/resource/pack/VanillaDataPackProvider;wrapToFactory(Lnet/minecraft/resource/pack/ResourcePack;)Lnet/minecraft/resource/pack/PackProfile$PackFactory;"
+			),
+			index = 0
+	)
+	
+	private ResourcePack onPackGet(ResourcePack pack) {
+			return ResourceLoaderImpl.buildMinecraftResourcePack(ResourceType.SERVER_DATA, pack);
+	}*/
+	/*
+	@ModifyArg(
+			method = "createBuiltinPackProfile(Ljava/lang/String;Lnet/minecraft/resource/pack/PackProfile$PackFactory;Lnet/minecraft/text/Text;)Lnet/minecraft/resource/pack/PackProfile;",
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/resource/pack/PackProfile;of(Ljava/lang/String;Lnet/minecraft/text/Text;ZLnet/minecraft/resource/pack/ResourcePackProfile$PackFactory;Lnet/minecraft/resource/ResourceType;Lnet/minecraft/resource/pack/PackProfile$InsertionPosition;Lnet/minecraft/resource/pack/PackSource;)Lnet/minecraft/resource/pack/PackProfile;"
 			),
 			index = 3
 	)
-	private ResourcePackProfile.ResourcePackFactory onCreateBuiltinResourcePackProfile(String name, Text displayName, boolean alwaysEnabled,
-			ResourcePackProfile.ResourcePackFactory factory, ResourceType type, ResourcePackProfile.InsertionPosition insertionPosition,
-			ResourcePackSource source) {
-		return n -> ResourceLoaderImpl.buildVanillaBuiltinResourcePack(factory.open(n), ResourceType.SERVER_DATA,
-				"data/" + DATA_PACKS_DIR.getNamespace() + '/' + DATA_PACKS_DIR.getPath() + '/' + name
-		);
-	}
+	protected PackFactory onCreateBuiltinResourcePackProfile(String name, Text displayName, boolean alwaysEnabled,
+			PackFactory factory, ResourceType type, PackProfile.InsertionPosition insertionPosition,
+			PackSource source) {
+		return QuiltResourcePackProfile.wrapToFactory(ResourceLoaderImpl.buildVanillaBuiltinResourcePack(factory.openPrimary(name), ResourceType.SERVER_DATA,				"data/" + DATA_PACKS_DIR.getNamespace() + '/' + DATA_PACKS_DIR.getPath() + '/' + name
+		));
+	}*/
 }
