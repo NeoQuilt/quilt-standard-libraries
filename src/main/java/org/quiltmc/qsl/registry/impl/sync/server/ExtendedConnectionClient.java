@@ -16,10 +16,9 @@
 
 package org.quiltmc.qsl.registry.impl.sync.server;
 
+import jp.mikumikudance.neoquilt.networking.NeoQuiltNetworkUtils;
 import net.minecraft.registry.Registry;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
-
-import org.quiltmc.qsl.registry.mixin.ServerPlayNetworkHandlerAccessor;
 
 public interface ExtendedConnectionClient {
 	void quilt$addUnknownEntry(Registry<?> registry, Object entry);
@@ -31,6 +30,6 @@ public interface ExtendedConnectionClient {
 	int quilt$getModProtocol(String id);
 
 	static ExtendedConnectionClient from(ServerPlayNetworkHandler handler) {
-		return (ExtendedConnectionClient) ((ServerPlayNetworkHandlerAccessor) handler).getConnection();
+			return (ExtendedConnectionClient)  NeoQuiltNetworkUtils.handlerToConnection(handler);
 	}
 }

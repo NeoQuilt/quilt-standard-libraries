@@ -209,10 +209,6 @@ public final class DelayedRegistry<T> implements MutableRegistry<T> {
 		return this.wrapped.size();
 	}
 
-	@Override
-	public Holder<T> set(int rawId, RegistryKey<T> key, T entry, Lifecycle lifecycle) {
-		throw new UnsupportedOperationException("DelayedRegistry does not support set.");
-	}
 
 	@Override
 	public Reference<T> register(RegistryKey<T> key, T entry, Lifecycle lifecycle) {

@@ -28,11 +28,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.screen.multiplayer.MultiplayerServerListWidget;
+import net.minecraft.client.gui.widget.list.multiplayer.ServerEntryListWidget;
 import net.minecraft.client.network.ServerInfo;
 
 @Environment(EnvType.CLIENT)
-@Mixin(MultiplayerServerListWidget.ServerEntry.class)
+@Mixin(ServerEntryListWidget.ServerEntry.class)
 public class MultiplayerServerListWidgetServerEntryMixin {
 	@Shadow
 	@Final

@@ -25,11 +25,11 @@ public interface SynchronizedIdList<T> {
 	void quilt$clear();
 
 	@SuppressWarnings("unchecked")
-	static <T> SynchronizedIdList<T> as(IdList<T> idList) {
-		return (SynchronizedIdList<T>) idList;
+	static <T> IdList<T> as(IdList<T> idList) {
+		return  idList;
 	}
 
 	static void clear(IdList<?> idList) {
-		as(idList).quilt$clear();
+		as(idList).idMap.clear();
 	}
 }

@@ -13,32 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.quiltmc.qsl.registry.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-
-import org.quiltmc.qsl.registry.impl.sync.server.DelayedPacketsHolder;
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
-	@Inject(method = "onPlayerConnect", at = @At("TAIL"))
-	private void quilt$sendSync(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-		var delayedList = ((DelayedPacketsHolder) player).quilt$getPacketList();
 
-		if (delayedList != null) {
-			for (var packet : delayedList) {
-				packet.apply(player.networkHandler);
-			}
-		}
-
-		((DelayedPacketsHolder) player).quilt$setPacketList(null);
-	}
 }

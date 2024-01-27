@@ -42,7 +42,7 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.minecraft.block.Block;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.encoding.VarInts;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.SimpleRegistry;
@@ -220,22 +220,21 @@ public final class ServerRegistrySync {
 			if (RegistrySynchronization.isEntryOptional((SimpleRegistry<? super T>) registry, key)) {
 				continue;
 			}
-
 			var blockId = registry.getRawId(key);
-			dataLength += PacketByteBuf.getVarIntLength(blockId);
+			dataLength += VarInts.getSizeBytes(blockId);
 			var states = toStates.apply(key);
 			var ids = new IntArrayList(states.size());
 			packetData.put(blockId, ids);
-			dataLength += PacketByteBuf.getVarIntLength(states.size());
+			dataLength += VarInts.getSizeBytes(states.size());
 
 			for (var entry : states) {
 				var stateId = stateList.getRawId(entry);
-				dataLength += PacketByteBuf.getVarIntLength(stateId);
+				dataLength += VarInts.getSizeBytes(stateId);
 				ids.add(stateId);
 
 				if (dataLength > MAX_SAFE_PACKET_SIZE) {
 					sendStateValidationPacket(connection, packetId, packetData);
-					dataLength = PacketByteBuf.getVarIntLength(states.size()) + PacketByteBuf.getVarIntLength(blockId);
+					dataLength = VarInts.getSizeBytes(states.size()) + VarInts.getSizeBytes(blockId);
 					ids = new IntArrayList(states.size());
 					packetData.put(blockId, ids);
 				}

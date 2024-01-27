@@ -16,43 +16,11 @@
 
 package org.quiltmc.qsl.registry.mixin;
 
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.listener.PacketListener;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-
-import org.quiltmc.qsl.registry.impl.sync.server.ServerRegistrySync;
-import org.quiltmc.qsl.registry.impl.sync.server.ServerRegistrySyncNetworkHandler;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
-	@Shadow
-	@Final
-	public ClientConnection connection;
 
-	@Shadow
-	protected abstract void addToServer(ServerPlayerEntity player);
-
-	@Unique
-	private boolean quilt$continueJoining = false;
-
-	@Inject(method = "addToServer", at = @At("HEAD"), cancellable = true)
-	private void quilt$applySyncHandler(ServerPlayerEntity player, CallbackInfo ci) {
-		if (!player.server.isHost(player.getGameProfile()) && !this.quilt$continueJoining && ServerRegistrySync.shouldSync()) {
-			this.connection.setPacketListener(new ServerRegistrySyncNetworkHandler(player, this.connection, () -> {
-				this.quilt$continueJoining = true;
-				this.connection.setPacketListener((PacketListener) this);
-				this.addToServer(player);
-			}));
-			ci.cancel();
-		}
-	}
 }
