@@ -70,35 +70,19 @@ public final class TheEndBiomeData implements RegistryEvents.DynamicRegistryLoad
 	}
 
 	public static void addEndBiomeReplacement(RegistryKey<Biome> replaced, RegistryKey<Biome> variant, double weight) {
-		Preconditions.checkNotNull(replaced, "replaced entry is null");
-		Preconditions.checkNotNull(variant, "variant entry is null");
-		Preconditions.checkArgument(weight > 0.0, "Weight is less than or equal to 0.0 (got %s)", weight);
-		END_BIOMES_MAP.computeIfAbsent(replaced, key -> new WeightedPicker<>()).add(variant, weight);
-		BIOMES.add(variant);
+		net.fabricmc.fabric.impl.biome.TheEndBiomeData.addEndBiomeReplacement(replaced, variant, weight);
 	}
 
 	public static void addEndMidlandsReplacement(RegistryKey<Biome> highlands, RegistryKey<Biome> midlands, double weight) {
-		Preconditions.checkNotNull(highlands, "highlands entry is null");
-		Preconditions.checkNotNull(midlands, "midlands entry is null");
-		Preconditions.checkArgument(weight > 0.0, "Weight is less than or equal to 0.0 (got %s)", weight);
-		END_MIDLANDS_MAP.computeIfAbsent(highlands, key -> new WeightedPicker<>()).add(midlands, weight);
-		BIOMES.add(midlands);
+		net.fabricmc.fabric.impl.biome.TheEndBiomeData.addEndMidlandsReplacement(highlands, midlands, weight);
 	}
 
 	public static void addEndBarrensReplacement(RegistryKey<Biome> highlands, RegistryKey<Biome> barrens, double weight) {
-		Preconditions.checkNotNull(highlands, "highlands entry is null");
-		Preconditions.checkNotNull(barrens, "midlands entry is null");
-		Preconditions.checkArgument(weight > 0.0, "Weight is less than or equal to 0.0 (got %s)", weight);
-		END_BARRENS_MAP.computeIfAbsent(highlands, key -> new WeightedPicker<>()).add(barrens, weight);
-		BIOMES.add(barrens);
+		net.fabricmc.fabric.impl.biome.TheEndBiomeData.addEndBarrensReplacement(highlands, barrens, weight);
 	}
 
 	public static Overrides createOverrides() {
 		return new Overrides(biomeRegistry);
-	}
-
-	public static Collection<Holder<Biome>> getAddedBiomes(HolderProvider<Biome> registry) {
-		return BIOMES.stream().map(registry::getHolderOrThrow).collect(Collectors.toSet());
 	}
 
 	@Override
@@ -129,7 +113,8 @@ public final class TheEndBiomeData implements RegistryEvents.DynamicRegistryLoad
 		private final Map<Holder<Biome>, WeightedPicker<Holder<Biome>>> endBarrensMap;
 
 		public Overrides(HolderProvider<Biome> biomeRegistry) {
-			this.addedBiomes = TheEndBiomeData.getAddedBiomes(biomeRegistry);
+			 net.fabricmc.fabric.impl.biome.TheEndBiomeData.Overrides over = new net.fabricmc.fabric.impl.biome.TheEndBiomeData.Overrides(biomeRegistry);
+			this.addedBiomes = over.customBiomes;
 			this.endMidlands = biomeRegistry.getHolderOrThrow(Biomes.END_MIDLANDS);
 			this.endBarrens = biomeRegistry.getHolderOrThrow(Biomes.END_BARRENS);
 			this.endHighlands = biomeRegistry.getHolderOrThrow(Biomes.END_HIGHLANDS);
