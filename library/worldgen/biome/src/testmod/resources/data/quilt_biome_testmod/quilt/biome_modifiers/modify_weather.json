@@ -1,7 +1,0 @@
-{
-  "type": "quilt:modify_weather",
-  "phase": "additions",
-  "selector": "minecraft:jungle",
-  "temperature_modifier": "frozen",
-  "has_precipitation": true
-}

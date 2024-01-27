@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": {
-    "minecraft:cake": 200,
-    "minecraft:coal": 2000,
-    "minecraft:coal_block": 200000
-  }
-}

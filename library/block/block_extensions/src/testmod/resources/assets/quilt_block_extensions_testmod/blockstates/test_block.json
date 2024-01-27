@@ -1,7 +1,0 @@
-{
-  "variants": {
-    "": {
-      "model": "quilt_block_extensions_testmod:block/test_block"
-    }
-  }
-}

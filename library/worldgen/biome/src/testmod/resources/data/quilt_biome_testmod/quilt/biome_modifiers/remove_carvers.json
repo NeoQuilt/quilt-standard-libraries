@@ -1,8 +1,0 @@
-{
-  "type": "quilt:remove_carvers",
-  "phase": "removals",
-  "selector": "#minecraft:is_nether",
-  "carvers": [
-    "minecraft:nether_cave"
-  ]
-}
