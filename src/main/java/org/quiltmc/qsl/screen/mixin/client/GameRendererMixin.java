@@ -48,7 +48,7 @@ abstract class GameRendererMixin {
 	@Unique
 	private Screen quilt$renderingScreen;
 
-	@SuppressWarnings("InvalidInjectorMethodSignature")
+	/*@SuppressWarnings("InvalidInjectorMethodSignature")
 	@Inject(
 			method = "render",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;renderWithTooltip(Lnet/minecraft/client/gui/GuiGraphics;IIF)V"),
@@ -78,5 +78,5 @@ abstract class GameRendererMixin {
 		ScreenEvents.AFTER_RENDER.invoker().afterRender(this.quilt$renderingScreen, graphics, mouseX, mouseY, tickDelta);
 		// Finally set the currently rendering screen to null
 		this.quilt$renderingScreen = null;
-	}
+	}*/
 }
