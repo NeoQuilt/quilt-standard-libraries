@@ -22,13 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.mojang.serialization.Lifecycle;
-import it.unimi.dsi.fastutil.objects.Object2ByteMap;
-import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectList;
 import org.jetbrains.annotations.Nullable;
+import org.quiltmc.qsl.base.api.event.Event;
+import org.quiltmc.qsl.registry.api.event.RegistryEvents;
+import org.quiltmc.qsl.registry.impl.event.MutableRegistryEntryContextImpl;
+import org.quiltmc.qsl.registry.impl.event.RegistryEventStorage;
+import org.quiltmc.qsl.registry.impl.sync.registry.RegistryFlag;
+import org.quiltmc.qsl.registry.impl.sync.registry.SynchronizedRegistry;
+import org.quiltmc.qsl.registry.impl.sync.server.ServerRegistrySync;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,19 +41,18 @@ import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.mojang.serialization.Lifecycle;
+
+import it.unimi.dsi.fastutil.objects.Object2ByteMap;
+import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import net.minecraft.registry.Holder;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;
-
-import org.quiltmc.qsl.base.api.event.Event;
-import org.quiltmc.qsl.registry.api.event.RegistryEvents;
-import org.quiltmc.qsl.registry.impl.event.MutableRegistryEntryContextImpl;
-import org.quiltmc.qsl.registry.impl.event.RegistryEventStorage;
-import org.quiltmc.qsl.registry.impl.sync.registry.RegistryFlag;
-import org.quiltmc.qsl.registry.impl.sync.registry.SynchronizedRegistry;
-import org.quiltmc.qsl.registry.impl.sync.server.ServerRegistrySync;
 
 /**
  * Stores and invokes registry events.
@@ -65,7 +65,7 @@ public abstract class SimpleRegistryMixin<V> implements Registry<V>, Synchronize
 
 	@Shadow
 	@Final
-	private Object2IntMap<V> entryToRawId;
+	private Reference2IntMap<V> entryToRawId;
 
 	@Shadow
 	@Final
@@ -109,37 +109,37 @@ public abstract class SimpleRegistryMixin<V> implements Registry<V>, Synchronize
 		this.quilt$entryContext = new MutableRegistryEntryContextImpl<>(this);
 		this.quilt$entryToFlag = new Object2ByteOpenHashMap<>();
 		this.quilt$entryAddedEvent = Event.create(RegistryEvents.EntryAdded.class,
-				callbacks -> context -> {
-					Identifier id = context.id();
-					V value = context.value();
-					int rawId = context.rawId();
+			callbacks -> context -> {
+				Identifier id = context.id();
+				V value = context.value();
+				int rawId = context.rawId();
 
-					for (var callback : callbacks) {
-						// This is done because some events may create recursion, which would corrupt the context for future queued events.
-						// Storing the values on this stack is much faster than instancing a new context every time.
-						if (context instanceof MutableRegistryEntryContextImpl<V> mutable) {
-							mutable.set(id, value, rawId);
-						}
-
-						callback.onAdded(context);
+				for (var callback : callbacks) {
+					// This is done because some events may create recursion, which would corrupt the context for future queued events.
+					// Storing the values on this stack is much faster than instancing a new context every time.
+					if (context instanceof MutableRegistryEntryContextImpl<V> mutable) {
+						mutable.set(id, value, rawId);
 					}
-				});
+
+					callback.onAdded(context);
+				}
+			});
 	}
 
 	@SuppressWarnings("InvalidInjectorMethodSignature")
 	@ModifyVariable(
-			method = "method_46744(ILnet/minecraft/registry/RegistryKey;Ljava/lang/Object;Lcom/mojang/serialization/Lifecycle;)Lnet/minecraft/registry/Holder$Reference;",
-			slice = @Slice(
-					from = @At(
-							value = "INVOKE",
-							target = "Ljava/util/Map;computeIfAbsent(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;",
-							remap = false
-					)
-			),
-			at = @At(
-					value = "STORE",
-					ordinal = 0
+		method = "method_46744(ILnet/minecraft/registry/RegistryKey;Ljava/lang/Object;Lcom/mojang/serialization/Lifecycle;)Lnet/minecraft/registry/Holder$Reference;",
+		slice = @Slice(
+			from = @At(
+				value = "INVOKE",
+				target = "Ljava/util/Map;computeIfAbsent(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;",
+				remap = false
 			)
+		),
+		at = @At(
+			value = "STORE",
+			ordinal = 0
+		)
 	)
 	private Holder.Reference<V> quilt$eagerFillReference(Holder.Reference<V> reference, int rawId, RegistryKey<V> key, V entry, Lifecycle lifecycle) {
 		reference.setValue(entry);
@@ -151,8 +151,8 @@ public abstract class SimpleRegistryMixin<V> implements Registry<V>, Synchronize
 	 */
 	@SuppressWarnings({"ConstantConditions", "unchecked"})
 	@Inject(
-			method = "method_46744(ILnet/minecraft/registry/RegistryKey;Ljava/lang/Object;Lcom/mojang/serialization/Lifecycle;)Lnet/minecraft/registry/Holder$Reference;",
-			at = @At("RETURN")
+		method = "method_46744(ILnet/minecraft/registry/RegistryKey;Ljava/lang/Object;Lcom/mojang/serialization/Lifecycle;)Lnet/minecraft/registry/Holder$Reference;",
+		at = @At("RETURN")
 	)
 	private void quilt$invokeEntryAddEvent(int rawId, RegistryKey<V> key, V entry, Lifecycle lifecycle, CallbackInfoReturnable<Holder<V>> cir) {
 		this.quilt$entryContext.set(key.getValue(), entry, rawId);
@@ -182,8 +182,8 @@ public abstract class SimpleRegistryMixin<V> implements Registry<V>, Synchronize
 
 				if (!RegistryFlag.isSkipped(flag)) {
 					map.computeIfAbsent(
-							identifier.getNamespace(),
-							(n) -> new ArrayList<>()
+						identifier.getNamespace(),
+						(n) -> new ArrayList<>()
 					).add(new SyncEntry(identifier.getPath(), key, this.quilt$entryToFlag.getOrDefault(entry, flag)));
 				}
 			});

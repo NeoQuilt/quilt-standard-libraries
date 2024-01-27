@@ -58,8 +58,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
-import net.minecraft.text.component.LiteralComponent;
-import net.minecraft.text.component.TextComponent;
+import net.minecraft.text.component.StringComponent;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.IdList;
@@ -205,7 +204,7 @@ public final class ClientRegistrySync {
 		var buf = PacketByteBufs.create();
 		buf.writeIdentifier(identifier);
 
-		handler.send(ClientPlayNetworking.createC2SPacket(ClientPackets.SYNC_FAILED, buf));
+		handler.getConnection().send(ClientPlayNetworking.createC2SPacket(ClientPackets.SYNC_FAILED, buf));
 	}
 
 	private static void sendSyncUnknownEntriesPacket(ClientPlayNetworkHandler handler, Identifier identifier, IntList entries) {
@@ -213,7 +212,7 @@ public final class ClientRegistrySync {
 		buf.writeIdentifier(identifier);
 		buf.writeIntList(entries);
 
-		handler.send(ClientPlayNetworking.createC2SPacket(ClientPackets.UNKNOWN_ENTRY, buf));
+		handler.getConnection().send(ClientPlayNetworking.createC2SPacket(ClientPackets.UNKNOWN_ENTRY, buf));
 	}
 
 	private static void handleGoodbyePacket(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender sender) {
@@ -459,8 +458,8 @@ public final class ClientRegistrySync {
 	}
 
 	private static boolean isTextEmpty(Text text) {
-		return (text.asComponent() == TextComponent.EMPTY || (text.asComponent() instanceof LiteralComponent literalComponent && literalComponent.literal().isEmpty())) && text.getSiblings().isEmpty();
-	}
+		return (text.asComponent() == StringComponent.EMPTY || (text.asComponent() instanceof StringComponent.LiteralTextComponent literalComponent && literalComponent.asString().isEmpty())) && text.getSiblings().isEmpty();
+		}
 
 	private static void handleRestorePacket(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender sender) {
 		restoreSnapshot(client);

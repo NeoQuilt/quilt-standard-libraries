@@ -87,6 +87,7 @@ import net.minecraft.network.packet.s2c.common.DisconnectS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.unmapped.C_zpmnryxk;
 
 /**
  * All the magic happens here!
@@ -374,7 +375,7 @@ public final class ServerRegistrySyncNetworkHandler implements ServerPlayPacketL
 	}
 
 	@Override
-	public void method_12069(ClientSettingsUpdateC2SPacket var1) {
+	public void method_54436(C_zpmnryxk var1) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -387,6 +388,12 @@ public final class ServerRegistrySyncNetworkHandler implements ServerPlayPacketL
 
 	@Override
 	public void onChunkBatchAcknowledgement(ChunkBatchAcknowledgementC2SPacket var1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onClientSettingsUpdate(ClientSettingsUpdateC2SPacket var1) {
 		// TODO Auto-generated method stub
 		
 	}
