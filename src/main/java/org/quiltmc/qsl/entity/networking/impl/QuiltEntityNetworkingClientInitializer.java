@@ -18,7 +18,7 @@ package org.quiltmc.qsl.entity.networking.impl;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.quiltmc.qsl.base.api.entrypoint.client.ClientModInitializer;
-import org.quiltmc.qsl.entity.networking.api.extended_spawn_data.QuiltExtendedSpawnDataEntity;
+import org.quiltmc.qsl.entity.extensions.api.networking.QuiltExtendedSpawnDataEntity;
 import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 import org.slf4j.Logger;
 

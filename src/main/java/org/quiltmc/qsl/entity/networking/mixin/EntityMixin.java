@@ -16,6 +16,7 @@
 
 package org.quiltmc.qsl.entity.networking.mixin;
 
+import org.quiltmc.qsl.entity.extensions.api.networking.QuiltExtendedSpawnDataEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,8 +25,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
-
-import org.quiltmc.qsl.entity.networking.api.extended_spawn_data.QuiltExtendedSpawnDataEntity;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
