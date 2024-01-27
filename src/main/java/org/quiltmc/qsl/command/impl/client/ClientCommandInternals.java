@@ -54,7 +54,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.registry.ClientRegistryLayer;
 import net.minecraft.command.CommandBuildContext;
-import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.feature_flags.FeatureFlagBitSet;
 import net.minecraft.server.command.CommandManager;
@@ -127,11 +126,7 @@ public final class ClientCommandInternals {
 
 			commandSource.sendError(getErrorMessage(e));
 			return true;
-		} catch (CommandException e) {
-			LOGGER.warn("Error while executing client-side command '{}'", message, e);
-			commandSource.sendError(e.getTextMessage());
-			return true;
-		} catch (RuntimeException e) {
+		}  catch (RuntimeException e) {
 			LOGGER.warn("Error while executing client-side command '{}'", message, e);
 			commandSource.sendError(Text.of(e.getMessage()));
 			return true;
