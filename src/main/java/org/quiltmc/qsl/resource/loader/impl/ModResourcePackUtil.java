@@ -75,7 +75,7 @@ public final class ModResourcePackUtil {
 
 	public static DataPackSettings createDefaultDataPackSettings(DataPackSettings source) {
 		var moddedResourcePacks = new ArrayList<PackProfile>();
-		ModResourcePackProvider.SERVER_RESOURCE_PACK_PROVIDER.register(moddedResourcePacks::add);
+		ModResourcePackProvider.SERVER_RESOURCE_PACK_PROVIDER.loadPacks(moddedResourcePacks::add);
 
 		var enabled = new ArrayList<>(source.getEnabled());
 		var disabled = new ArrayList<>(source.getDisabled());

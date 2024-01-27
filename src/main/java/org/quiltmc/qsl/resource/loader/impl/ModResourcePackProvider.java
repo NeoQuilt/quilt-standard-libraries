@@ -40,7 +40,7 @@ public final class ModResourcePackProvider implements PackProvider {
 	}
 
 	@Override
-	public void register(Consumer<PackProfile> profileAdder) {
+	public void loadPacks(Consumer<PackProfile> profileAdder) {
 		/*
 			Register order rule in this provider:
 			1. Mod built-in resource packs
@@ -55,7 +55,7 @@ public final class ModResourcePackProvider implements PackProvider {
 		ResourceLoaderImpl.registerBuiltinResourcePacks(this.type, profileAdder);
 
 		for (var provider : ResourceLoaderImpl.get(this.type).resourcePackProfileProviders) {
-			provider.register(profileAdder);
+			provider.loadPacks(profileAdder);
 		}
 	}
 }

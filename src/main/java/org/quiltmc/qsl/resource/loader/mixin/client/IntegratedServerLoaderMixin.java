@@ -39,7 +39,6 @@ import com.mojang.serialization.Lifecycle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.world.CreateWorldScreen;
 import net.minecraft.registry.LayeredRegistryManager;
 import net.minecraft.resource.AutoCloseableResourceManager;
@@ -50,83 +49,78 @@ import net.minecraft.server.WorldStem;
 import net.minecraft.server.integrated.IntegratedServerLoader;
 import net.minecraft.world.storage.WorldSaveStorage;
 
-@Environment(EnvType.CLIENT)
+@Environment(EnvType.CLIENT) 
 @Mixin(IntegratedServerLoader.class)
 public abstract class IntegratedServerLoaderMixin {
-	@Shadow
-	private static void close(WorldSaveStorage.Session storageSession, String worlName) {
-		throw new IllegalStateException("Mixin injection failed.");
-	}
 
 	@Shadow
-	protected abstract void start(Screen parentScreen, String worldName, boolean safeMode, boolean requireBackup);
+	protected abstract void start(WorldSaveStorage.Session session, com.mojang.serialization.Dynamic<?> dynamic, boolean bl, boolean bl2, Runnable runnable);
 
 	@Unique
 	private static final TriState EXPERIMENTAL_SCREEN_OVERRIDE = TriState.fromProperty("quilt.resource_loader.experimental_screen_override");
 
 	@Inject(method = "method_45694", at = @At("RETURN"))
 	private <D, R> void onEndDataPackLoad(WorldLoader.PackConfig packConfig, WorldLoader.LoadContextSupplier<D> loadContextSupplier,
-			WorldLoader.ApplierFactory<D, R> applierFactory, CallbackInfoReturnable<R> cir) {
+										  WorldLoader.ApplierFactory<D, R> applierFactory, CallbackInfoReturnable<R> cir) {
 		if (cir.getReturnValue() instanceof WorldStem worldStem) {
 			ResourceLoaderEvents.END_DATA_PACK_RELOAD.invoker().onEndDataPackReload(new ResourceLoaderEventContextsImpl.ReloadEndContext(
-					worldStem.resourceManager(), worldStem.registries().getCompositeManager(), Optional.empty()
+				worldStem.resourceManager(), worldStem.registries().getCompositeManager(), Optional.empty()
 			));
 		}
 	}
 
 	@Dynamic
 	@Inject(
-			method = "method_45695(Lnet/minecraft/resource/AutoCloseableResourceManager;Lnet/minecraft/server/ServerReloadableResources;Lnet/minecraft/registry/LayeredRegistryManager;Lnet/minecraft/server/integrated/IntegratedServerLoader$C_tattaqxb;)Lcom/mojang/datafixers/util/Pair;",
-			at = @At("HEAD")
+		method = "method_45695(Lnet/minecraft/resource/AutoCloseableResourceManager;Lnet/minecraft/server/ServerReloadableResources;Lnet/minecraft/registry/LayeredRegistryManager;Lnet/minecraft/server/integrated/IntegratedServerLoader$C_tattaqxb;)Lcom/mojang/datafixers/util/Pair;",
+		at = @At("HEAD")
 	)
 	private static void onEndDataPackLoad(AutoCloseableResourceManager resourceManager, ServerReloadableResources resources,
-			LayeredRegistryManager<?> layeredRegistryManager, @Coerce Object c_tattaqxb,
-			CallbackInfoReturnable<Pair<?, ?>> cir) {
+										  LayeredRegistryManager<?> layeredRegistryManager, @Coerce Object c_tattaqxb,
+										  CallbackInfoReturnable<Pair<?, ?>> cir) {
 		ResourceLoaderEvents.END_DATA_PACK_RELOAD.invoker().onEndDataPackReload(new ResourceLoaderEventContextsImpl.ReloadEndContext(
-				resourceManager, layeredRegistryManager.getCompositeManager(), Optional.empty()
+			resourceManager, layeredRegistryManager.getCompositeManager(), Optional.empty()
 		));
 	}
 
 	@ModifyArg(
-			method = {"createAndStart", "start(Lnet/minecraft/client/gui/screen/Screen;Ljava/lang/String;ZZ)V"},
-			at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;warn(Ljava/lang/String;Ljava/lang/Throwable;)V", remap = false),
-			index = 1
+		method = {"createAndStart", "start(Lnet/minecraft/world/storage/WorldSaveStorage$Session;Lcom/mojang/serialization/Dynamic;ZZLjava/lang/Runnable;)V"},
+		at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;warn(Ljava/lang/String;Ljava/lang/Throwable;)V", remap = false),
+		index = 1
 	)
 	private Throwable onFailedDataPackLoad(Throwable exception) {
 		ResourceLoaderEvents.END_DATA_PACK_RELOAD.invoker().onEndDataPackReload(new ResourceLoaderEventContextsImpl.ReloadEndContext(
-				null, null, Optional.of(exception)
+			null, null, Optional.of(exception)
 		));
 		return exception; // noop
 	}
 
 	@Inject(
-			method = "start(Lnet/minecraft/client/gui/screen/Screen;Ljava/lang/String;ZZ)V",
-			at = @At(
-					value = "INVOKE",
-					target = "Lnet/minecraft/server/integrated/IntegratedServerLoader;askForBackup(Lnet/minecraft/client/gui/screen/Screen;Ljava/lang/String;ZLjava/lang/Runnable;)V"
-			),
-			locals = LocalCapture.CAPTURE_FAILHARD,
-			cancellable = true
+		method = "start(Lnet/minecraft/world/storage/WorldSaveStorage$Session;Lcom/mojang/serialization/Dynamic;ZZLjava/lang/Runnable;)V",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/server/integrated/IntegratedServerLoader;askForBackup(Lnet/minecraft/world/storage/WorldSaveStorage$Session;ZLjava/lang/Runnable;Ljava/lang/Runnable;)V"
+		),
+		locals = LocalCapture.CAPTURE_FAILHARD,
+		cancellable = true
 	)
-	private void onBackupExperimentalWarning(Screen parentScreen, String worldName, boolean safeMode, boolean requireBackup, CallbackInfo ci,
-			WorldSaveStorage.Session session, PackManager resourcePackManager, WorldStem worldStem) {
+	private void onBackupExperimentalWarning(WorldSaveStorage.Session session, com.mojang.serialization.Dynamic<?> dynamic, boolean safeMode, boolean requireBackup, Runnable runnable, CallbackInfo ci,
+											 PackManager resourcePackManager, WorldStem worldStem) {
 		if (EXPERIMENTAL_SCREEN_OVERRIDE.toBooleanOrElse(true)
-				&& !worldStem.saveProperties().getGeneratorOptions().hasLegacyCustomOptions()) {
+			&& !worldStem.saveProperties().getGeneratorOptions().hasLegacyCustomOptions()) {
 			worldStem.close();
-			close(session, worldName);
-			this.start(parentScreen, worldName, safeMode, false);
+			this.start(session, dynamic, safeMode, false, runnable);
 			ci.cancel();
 		}
 	}
 
 	@Inject(
-			method = "tryLoad",
-			at = @At(value = "CONSTANT", args = "stringValue=selectWorld.warning.experimental.title"),
-			cancellable = true
+		method = "tryLoad",
+		at = @At(value = "CONSTANT", args = "stringValue=selectWorld.warning.experimental.title"),
+		cancellable = true
 	)
 	private static void onExperimentalWarning(
-			MinecraftClient client, CreateWorldScreen parentScreen, Lifecycle dynamicRegistryLifecycle, Runnable successCallback, boolean bl,
-			CallbackInfo ci
+		MinecraftClient client, CreateWorldScreen parentScreen, Lifecycle dynamicRegistryLifecycle, Runnable successCallback, boolean bl,
+		CallbackInfo ci
 	) {
 		if (EXPERIMENTAL_SCREEN_OVERRIDE.toBooleanOrElse(true)) {
 			successCallback.run();

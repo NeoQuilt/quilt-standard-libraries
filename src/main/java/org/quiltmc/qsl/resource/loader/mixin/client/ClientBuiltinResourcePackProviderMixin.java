@@ -76,7 +76,7 @@ public abstract class ClientBuiltinResourcePackProviderMixin {
 		private void addBuiltinResourcePacks(Consumer<PackProfile> profileAdder, CallbackInfo ci) {
 			// Register built-in resource packs after vanilla built-in resource packs are registered.
 			if (((Object) this) instanceof ClientBuiltinResourcePackProvider) {
-				ModResourcePackProvider.CLIENT_RESOURCE_PACK_PROVIDER.register(profileAdder);
+				ModResourcePackProvider.CLIENT_RESOURCE_PACK_PROVIDER.loadPacks(profileAdder);
 			}
 		}
 	}
