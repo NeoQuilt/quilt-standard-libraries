@@ -103,8 +103,8 @@ public abstract class ClientPlayNetworkHandlerMixin extends AbstractClientNetwor
 			method = "onChatMessage",
 			at = @At(
 					value = "INVOKE",
-					target = "Lnet/minecraft/network/message/MessageSignatureStorage;addMessageSignatures(Lnet/minecraft/network/message/SignedChatMessage;)V",
-					shift = At.Shift.AFTER
+							target = "Lnet/minecraft/network/message/MessageSignatureStorage;method_46286(Lnet/minecraft/network/message/MessageBody;Lnet/minecraft/network/message/MessageSignature;)V",
+							shift = At.Shift.AFTER
 			)
 	)
 	public void quilt$afterInboundChatMessage(ChatMessageS2CPacket packet, CallbackInfo ci) {
