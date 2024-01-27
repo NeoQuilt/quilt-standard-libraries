@@ -19,19 +19,22 @@ package org.quiltmc.qsl.worldgen.dimension.mixin;
 
 import java.util.List;
 
-import com.mojang.datafixers.DataFixer;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.Lifecycle;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.Lifecycle;
+
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.world.FeatureAndDataSettings;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.storage.WorldSaveStorage;
@@ -51,9 +54,9 @@ import net.minecraft.world.storage.WorldSaveStorage;
 @Mixin(WorldSaveStorage.class)
 public class WorldSaveStorageBugfixMixin {
 	@SuppressWarnings("unchecked")
-	@Inject(method = "readGeneratorProperties", at = @At("HEAD"))
+	@Inject(method = "method_54523", at = @At("HEAD"))
 	private static <T> void onReadGeneratorProperties(
-			Dynamic<T> nbt, DataFixer dataFixer, int version,
+			Dynamic<?> nbt, FeatureAndDataSettings featureAndDataSettings, Registry<DimensionOptions> registry, DynamicRegistryManager.Frozen frozen,
 			CallbackInfoReturnable<Pair<GeneratorOptions, Lifecycle>> cir
 	) {
 		NbtElement nbtTag = ((Dynamic<NbtElement>) nbt).getValue();
